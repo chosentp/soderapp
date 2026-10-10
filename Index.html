@@ -1,0 +1,1767 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chosen 👑 SoderApp v1.8.3 Satelital Pro</title>
+    <!-- Tailwind CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <!-- Leaflet CSS para Mapas -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <!-- FontAwesome para Iconos -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+        #mapa-calles-real { height: 320px; z-index: 1; border-radius: 0.5rem; }
+        .preview-img { width: 100%; max-height: 140px; object-fit: cover; border-radius: 6px; border: 1px solid #cbd5e1; }
+        
+        /* Bloqueo Pull-To-Refresh */
+        body { overscroll-behavior-y: contain; }
+
+        /* Estilos Modo Oscuro */
+        body.dark-mode {
+            background-color: #0f172a;
+            color: #f8fafc;
+        }
+        body.dark-mode .bg-white {
+            background-color: #1e293b !important;
+            color: #f8fafc !important;
+            border-color: #334155 !important;
+        }
+        body.dark-mode .bg-gray-50, body.dark-mode .bg-gray-100 {
+            background-color: #0f172a !important;
+            color: #f8fafc !important;
+            border-color: #334155 !important;
+        }
+        body.dark-mode .text-gray-800, body.dark-mode .text-gray-900, body.dark-mode .text-gray-700 {
+            color: #f1f5f9 !important;
+        }
+        body.dark-mode .text-gray-600, body.dark-mode .text-gray-500 {
+            color: #94a3b8 !important;
+        }
+        body.dark-mode nav {
+            background-color: #1e293b !important;
+            border-color: #334155 !important;
+        }
+        body.dark-mode input, body.dark-mode select {
+            background-color: #334155 !important;
+            color: #ffffff !important;
+            border-color: #475569 !important;
+        }
+
+        /* Banner Acerca de con Fondo Olas */
+        .bg-about-waves {
+            background-image: linear-gradient(rgba(15, 23, 42, 0.75), rgba(15, 23, 42, 0.85)), url('1000638322.png');
+            background-size: cover;
+            background-position: center;
+        }
+    </style>
+</head>
+<body class="bg-gray-100 font-sans pb-28 text-gray-900">
+
+    <!-- Splash Screen con Imagen Oficial de Bienvenida -->
+    <div id="splash-screen" class="fixed inset-0 z-50 bg-cover bg-center flex flex-col justify-end pb-12 px-6" style="background-image: url('1000638284.jpg');">
+        <button onclick="cerrarSplash()" class="w-full max-w-sm mx-auto bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-xl text-base shadow-2xl transition transform active:scale-95 flex items-center justify-center gap-2 border border-blue-400">
+            <span>🚀 INGRESAR AL SISTEMA</span>
+        </button>
+    </div>
+
+    <!-- Encabezado Principal Limpio con Isologo PNG -->
+    <header class="bg-gray-900 text-white px-4 py-2 shadow-md sticky top-0 z-40 flex justify-between items-center border-b border-gray-800">
+        <div class="flex items-center space-x-2">
+            <img src="1000638287.png" alt="Chosen SoderApp" class="h-10 object-contain">
+        </div>
+        <div class="flex items-center space-x-3">
+            <span id="lbl-estado-ruta" class="text-xs px-2.5 py-1 rounded bg-red-600 font-bold">DETENIDO</span>
+            <button onclick="switchTab('config')" class="text-yellow-400 hover:text-yellow-300 text-xl px-2 py-1 focus:outline-none" title="Configuración">
+                <i class="fas fa-cog"></i>
+            </button>
+        </div>
+    </header>
+
+    <!-- Main Container -->
+    <main class="p-3 sm:p-5 max-w-5xl mx-auto">
+
+        <!-- TAB 1: RECORRIDO Y RUTA DEL DÍA -->
+        <div id="tab-recorrido" class="tab-content active space-y-4">
+            
+            <!-- Panel Control Estado Ruta -->
+            <div class="bg-white p-4 rounded-xl shadow-sm border border-gray-200">
+                <div class="flex justify-between items-center mb-3">
+                    <h2 class="text-base font-bold text-gray-800 flex items-center gap-2">
+                        <i class="fas fa-gamepad text-blue-600"></i> Estado del Recorrido: 
+                        <span id="lbl-estado-ruta-txt" class="text-blue-600 font-bold">Detenido</span>
+                    </h2>
+                </div>
+                <div class="grid grid-cols-3 gap-2">
+                    <button onclick="cambiarEstadoRuta('Activo')" class="bg-green-600 hover:bg-green-700 text-white text-xs sm:text-sm font-bold py-2 px-3 rounded-lg shadow">
+                        🚀 Iniciar
+                    </button>
+                    <button onclick="cambiarEstadoRuta('Pausado')" class="bg-yellow-500 hover:bg-yellow-600 text-white text-xs sm:text-sm font-bold py-2 px-3 rounded-lg shadow">
+                        ⏸ Pausar
+                    </button>
+                    <button onclick="finalizarRecorridoIrAVaciado()" class="bg-red-600 hover:bg-red-700 text-white text-xs sm:text-sm font-bold py-2 px-3 rounded-lg shadow">
+                        🏁 Finalizar
+                    </button>
+                </div>
+            </div>
+
+            <!-- Panel Stock en Vivo Camión -->
+            <div class="bg-gray-900 text-white p-4 rounded-xl shadow-md border-2 border-blue-500">
+                <h3 class="text-sm font-bold text-blue-400 border-b border-gray-700 pb-2 mb-3 flex items-center gap-2">
+                    <i class="fas fa-truck text-blue-400"></i> Stock Actual en Camión (En Vivo)
+                </h3>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-3 text-xs sm:text-sm">
+                    <div class="bg-gray-800 p-2.5 rounded-lg border border-gray-700">
+                        <span class="text-green-400 font-bold block mb-1">🟢 LLENOS RESTANTES:</span>
+                        <div class="grid grid-cols-2 gap-1 text-gray-200">
+                            <div>20L: <strong id="vivo-lleno-20" class="text-green-400 font-bold">0</strong></div>
+                            <div>12L: <strong id="vivo-lleno-12" class="text-green-400 font-bold">0</strong></div>
+                            <div>Soda 1L: <strong id="vivo-lleno-soda" class="text-green-400 font-bold">0</strong></div>
+                            <div>Soda 500ml: <strong id="vivo-lleno-soda500" class="text-green-400 font-bold">0</strong></div>
+                            <div>Disp. Mesa: <strong id="vivo-lleno-mesa" class="text-green-400 font-bold">0</strong></div>
+                        </div>
+                    </div>
+                    <div class="bg-gray-800 p-2.5 rounded-lg border border-gray-700">
+                        <span class="text-yellow-400 font-bold block mb-1">🟡 VACÍOS RECUPERADOS:</span>
+                        <div class="grid grid-cols-2 gap-1 text-gray-200">
+                            <div>20L: <strong id="vivo-vac-20" class="text-yellow-400 font-bold">0</strong></div>
+                            <div>12L: <strong id="vivo-vac-12" class="text-yellow-400 font-bold">0</strong></div>
+                            <div>Soda 1L: <strong id="vivo-vac-soda" class="text-yellow-400 font-bold">0</strong></div>
+                            <div>Soda 500ml: <strong id="vivo-vac-soda500" class="text-yellow-400 font-bold">0</strong></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Filtros Parámetros de Ruta -->
+            <div class="bg-blue-50 p-4 rounded-xl border border-blue-200 shadow-sm">
+                <h3 class="text-sm font-bold text-blue-900 mb-3 flex items-center gap-2">
+                    <i class="fas fa-sliders-h text-blue-600"></i> Parámetros de Ruta y Filtrado
+                </h3>
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs sm:text-sm">
+                    <div>
+                        <label class="block font-bold text-gray-700 mb-1">Día de Ruta:</label>
+                        <select id="sel-dia-trabajo" class="w-full p-2 border rounded-lg bg-white" onchange="renderClientesRuta()">
+                            <option value="Lunes">Lunes</option>
+                            <option value="Martes">Martes</option>
+                            <option value="Miércoles">Miércoles</option>
+                            <option value="Jueves">Jueves</option>
+                            <option value="Viernes">Viernes</option>
+                            <option value="Sábado">Sábado</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block font-bold text-gray-700 mb-1">Zona / Localidad:</label>
+                        <select id="select-zona" class="w-full p-2 border rounded-lg bg-white" onchange="renderClientesRuta()">
+                            <option value="Todas">Todas las Zonas</option>
+                            <option value="Villa Media Agua">Villa Media Agua</option>
+                            <option value="Las Lagunas / Tres Esquinas">Las Lagunas / Tres Esquinas</option>
+                            <option value="Los Berros - Parte Alta">Los Berros - Parte Alta</option>
+                            <option value="Cochagual Norte">Cochagual Norte</option>
+                            <option value="Cochagual Centro / Sur">Cochagual Centro / Sur</option>
+                            <option value="Colonia - Parte Norte">Colonia - Parte Norte</option>
+                            <option value="Punta del Médano - Norte / Centro">Punta del Médano - Norte / Centro</option>
+                            <option value="Sarmiento General">Sarmiento (General)</option>
+                            <option value="Pocito General">Pocito (General)</option>
+                            <option value="25 de Mayo General">25 de Mayo (General)</option>
+                            <option value="Las Casuarinas">Las Casuarinas</option>
+                            <option value="Santa Rosa">Santa Rosa</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block font-bold text-gray-700 mb-1">Fecha:</label>
+                        <input type="date" id="sel-fecha-trabajo" class="w-full p-2 border rounded-lg bg-white">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Mapa Satelital Dual (Calles / Satélite) -->
+            <div class="bg-white p-4 rounded-xl shadow-sm border border-gray-200">
+                <div class="flex items-center justify-between mb-2">
+                    <h3 class="text-sm font-bold text-gray-800 flex items-center gap-2">
+                        <i class="fas fa-map-marked-alt text-blue-600"></i> Radar Satelital & Calles
+                    </h3>
+                    <button onclick="toggleModoMapa()" id="btn-toggle-mapa" class="bg-blue-600 hover:bg-blue-700 text-white text-xs px-3 py-1 rounded font-bold shadow flex items-center gap-1">
+                        <i class="fas fa-layer-group"></i> <span id="lbl-tipo-mapa">Cambiar a Calles</span>
+                    </button>
+                </div>
+                <div class="flex flex-wrap gap-2 text-xs font-semibold mb-3 bg-gray-50 p-2 rounded-lg border">
+                    <span class="flex items-center gap-1"><span class="w-3 h-3 rounded-full bg-orange-500 inline-block"></span> Pendiente</span>
+                    <span class="flex items-center gap-1"><span class="w-3 h-3 rounded-full bg-green-500 inline-block"></span> Entregado</span>
+                    <span class="flex items-center gap-1"><span class="w-3 h-3 rounded-full bg-red-500 inline-block"></span> No Estaba</span>
+                    <span class="flex items-center gap-1"><span class="w-3 h-3 rounded-full bg-yellow-500 inline-block"></span> Volver Después</span>
+                    <span class="flex items-center gap-1"><span class="w-3 h-3 rounded-full bg-gray-400 inline-block"></span> No Compró</span>
+                    <span class="flex items-center gap-1"><span class="w-3 h-3 rounded-full bg-blue-500 inline-block"></span> Posible Cliente</span>
+                    <span class="flex items-center gap-1"><span class="w-3 h-3 rounded-full bg-purple-600 inline-block"></span> Cliente Nuevo</span>
+                </div>
+                <div id="mapa-calles-real"></div>
+            </div>
+
+            <!-- Clientes en Ruta & Ficha de Atención -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <!-- Lista en Ruta -->
+                <div class="bg-white p-4 rounded-xl shadow-sm border border-gray-200">
+                    <div class="flex justify-between items-center mb-3">
+                        <h3 class="text-sm font-bold text-gray-800"><i class="fas fa-list text-blue-600"></i> Clientes en Ruta</h3>
+                        <span id="cant-ruta" class="bg-blue-600 text-white text-xs px-2.5 py-0.5 rounded-full font-bold">0</span>
+                    </div>
+                    <div id="lista-clientes-ruta" class="space-y-2 max-h-96 overflow-y-auto pr-1"></div>
+                </div>
+
+                <!-- Ficha de Atención al Cliente ("Atender") -->
+                <div id="ficha-cliente" class="hidden bg-white p-4 rounded-xl shadow-md border-2 border-blue-500 space-y-3">
+                    <div class="border-b pb-2">
+                        <h3 class="text-base font-bold text-gray-900">Atendiendo a: <span id="fc-nombre" class="text-blue-700"></span></h3>
+                        <span id="fc-tipo" class="text-xs bg-blue-100 text-blue-800 font-bold px-2 py-0.5 rounded"></span>
+                    </div>
+                    
+                    <div class="text-xs text-gray-700 space-y-1">
+                        <p><strong>Dirección:</strong> <span id="fc-direccion"></span></p>
+                        <p><strong>Notas Tácticas:</strong> <span id="fc-notas" class="text-blue-700 font-bold"></span></p>
+                        <p><strong>Vacíos Actuales del Cliente:</strong> <span id="fc-vacios-info" class="text-yellow-600 font-bold"></span></p>
+                        <div class="flex items-center gap-2">
+                            <span><strong>Teléfono:</strong> <span id="fc-tel"></span></span>
+                            <button onclick="abrirWhatsapp()" class="bg-green-600 hover:bg-green-700 text-white text-xs px-2 py-1 rounded font-bold flex items-center gap-1">
+                                <i class="fab fa-whatsapp"></i> WhatsApp
+                            </button>
+                        </div>
+                    </div>
+
+                    <div id="box-foto-fachada"><img id="fc-foto" class="preview-img hidden" alt="Fachada"></div>
+
+                    <div>
+                        <label class="block text-xs font-bold text-gray-700 mb-1">Cambiar Estado de Visita:</label>
+                        <select id="vta-estado-visita" class="w-full p-2 text-xs border rounded-lg bg-gray-50" onchange="cambiarEstadoDirecto()">
+                            <option value="Pendiente">🟠 Pendiente</option>
+                            <option value="Entregado">🟢 Entregado</option>
+                            <option value="NoEstaba">🔴 No Estaba</option>
+                            <option value="Volver">🟡 Volver Después</option>
+                            <option value="NoDejo">⚪ No Compró</option>
+                        </select>
+                    </div>
+
+                    <hr class="my-2">
+                    <p class="text-xs font-bold text-gray-800">📦 Cantidades A Entregar:</p>
+                    <div class="grid grid-cols-2 gap-2 text-xs">
+                        <div>
+                            <label class="block font-semibold">Bidón 20L:</label>
+                            <input type="number" id="vta-cant-20" value="0" min="0" class="w-full p-1.5 border rounded" oninput="calcularVenta()">
+                        </div>
+                        <div>
+                            <label class="block font-semibold">Bidón 12L:</label>
+                            <input type="number" id="vta-cant-12" value="0" min="0" class="w-full p-1.5 border rounded" oninput="calcularVenta()">
+                        </div>
+                        <div>
+                            <label class="block font-semibold">Sifones Soda 1L:</label>
+                            <input type="number" id="vta-cant-soda" value="0" min="0" class="w-full p-1.5 border rounded" oninput="calcularVenta()">
+                        </div>
+                        <div>
+                            <label class="block font-semibold">Sifones Soda 500ml:</label>
+                            <input type="number" id="vta-cant-soda500" value="0" min="0" class="w-full p-1.5 border rounded" oninput="calcularVenta()">
+                        </div>
+                        <div class="col-span-2">
+                            <label class="block font-semibold">Venta Dispense Mesa:</label>
+                            <input type="number" id="vta-cant-mesa" value="0" min="0" class="w-full p-1.5 border rounded" oninput="calcularVenta()">
+                        </div>
+                    </div>
+
+                    <hr class="my-2">
+                    <p class="text-xs font-bold text-gray-800">🔄 Devolución Envases Vacíos:</p>
+                    <div class="grid grid-cols-2 gap-2 text-xs">
+                        <div>
+                            <label class="block font-semibold">Dev. Vacíos 20L:</label>
+                            <input type="number" id="vta-dev-20" value="0" min="0" class="w-full p-1.5 border rounded">
+                        </div>
+                        <div>
+                            <label class="block font-semibold">Dev. Vacíos 12L:</label>
+                            <input type="number" id="vta-dev-12" value="0" min="0" class="w-full p-1.5 border rounded">
+                        </div>
+                        <div>
+                            <label class="block font-semibold">Dev. Sifones 1L:</label>
+                            <input type="number" id="vta-dev-soda" value="0" min="0" class="w-full p-1.5 border rounded">
+                        </div>
+                        <div>
+                            <label class="block font-semibold">Dev. Sifones 500ml:</label>
+                            <input type="number" id="vta-dev-soda500" value="0" min="0" class="w-full p-1.5 border rounded">
+                        </div>
+                    </div>
+
+                    <hr class="my-2">
+                    <div class="grid grid-cols-3 gap-2 text-xs">
+                        <div>
+                            <label class="block font-semibold">Forma Pago:</label>
+                            <select id="vta-medio" class="w-full p-1.5 border rounded bg-white">
+                                <option value="Efectivo">Efectivo</option>
+                                <option value="Transferencia">Transferencia</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block font-semibold">Total ($):</label>
+                            <input type="number" id="vta-total" value="0" readonly class="w-full p-1.5 border rounded bg-gray-100 font-bold">
+                        </div>
+                        <div>
+                            <label class="block font-semibold">Monto Pagado ($):</label>
+                            <input type="number" id="vta-pago" value="0" class="w-full p-1.5 border rounded font-bold">
+                        </div>
+                    </div>
+
+                    <button onclick="completarVenta()" class="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-2.5 px-4 rounded-lg shadow text-xs sm:text-sm">
+                        Confirmar Venta y Entrega
+                    </button>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- TAB 2: CLIENTES -->
+        <div id="tab-clientes" class="tab-content space-y-4">
+            <!-- Estadísticas Clientes -->
+            <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 text-center text-xs">
+                <div class="bg-white p-3 rounded-xl border shadow-sm">
+                    <span class="text-gray-500 block">Activos</span>
+                    <strong class="text-base text-green-600" id="met-activos">0</strong>
+                </div>
+                <div class="bg-white p-3 rounded-xl border shadow-sm">
+                    <span class="text-gray-500 block">Inactivos (Bajas)</span>
+                    <strong class="text-base text-red-600" id="met-inactivos">0</strong>
+                </div>
+                <div class="bg-white p-3 rounded-xl border shadow-sm">
+                    <span class="text-gray-500 block">Nuevos Semana</span>
+                    <strong class="text-base text-blue-600" id="met-semana">0</strong>
+                </div>
+                <div class="bg-white p-3 rounded-xl border shadow-sm">
+                    <span class="text-gray-500 block">Total Padrón (1000+)</span>
+                    <strong class="text-base text-purple-600" id="met-mes">0</strong>
+                </div>
+            </div>
+
+            <!-- Botones Toggle -->
+            <div class="flex gap-2">
+                <button onclick="toggleSeccionCliente('form')" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg text-xs shadow flex items-center gap-1">
+                    <i class="fas fa-user-plus"></i> Agregar / Editar Cliente (o Posible)
+                </button>
+                <button onclick="toggleSeccionCliente('padron')" class="bg-gray-700 hover:bg-gray-800 text-white font-bold py-2 px-4 rounded-lg text-xs shadow flex items-center gap-1">
+                    <i class="fas fa-list-alt"></i> Padrón General
+                </button>
+            </div>
+
+            <!-- Formulario Alta / Edición -->
+            <div id="sec-form-cliente" class="bg-white p-4 rounded-xl shadow-md border-2 border-blue-500">
+                <h3 class="text-sm font-bold text-blue-900 mb-3" id="titulo-form-cliente">➕ Alta / Edición de Cliente / Posible Cliente</h3>
+                <input type="hidden" id="edit-cliente-id" value="">
+                
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+                    <div>
+                        <label class="block font-bold text-gray-700 mb-1">Nombre y Apellido / Negocio:</label>
+                        <input type="text" id="alta-nombre" placeholder="Ej. Pedro Gómez o Kiosco El Sol" class="w-full p-2 border rounded-lg">
+                    </div>
+                    <div>
+                        <label class="block font-bold text-gray-700 mb-1">Dirección / Referencia:</label>
+                        <input type="text" id="alta-dir" placeholder="Ej. Calle Barboza s/n" class="w-full p-2 border rounded-lg">
+                    </div>
+                    <div>
+                        <label class="block font-bold text-gray-700 mb-1">Teléfono (WhatsApp):</label>
+                        <input type="text" id="alta-tel" placeholder="2641234567" class="w-full p-2 border rounded-lg">
+                    </div>
+                    <div>
+                        <label class="block font-bold text-gray-700 mb-1">Tipo de Cliente:</label>
+                        <select id="alta-tipo" class="w-full p-2 border rounded-lg bg-white">
+                            <option value="Cliente Fijo">Cliente Fijo</option>
+                            <option value="Cliente Nuevo">Cliente Nuevo</option>
+                            <option value="Posible Cliente">Posible Cliente (Prospecto)</option>
+                            <option value="De Paso">De Paso</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block font-bold text-gray-700 mb-1">Día de Reparto Asignado:</label>
+                        <select id="alta-dia" class="w-full p-2 border rounded-lg bg-white">
+                            <option value="Lunes">Lunes</option>
+                            <option value="Martes">Martes</option>
+                            <option value="Miércoles">Miércoles</option>
+                            <option value="Jueves">Jueves</option>
+                            <option value="Viernes">Viernes</option>
+                            <option value="Sábado">Sábado</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block font-bold text-gray-700 mb-1">Zona / Localidad:</label>
+                        <select id="alta-zona" class="w-full p-2 border rounded-lg bg-white">
+                            <option value="Villa Media Agua">Villa Media Agua</option>
+                            <option value="Las Lagunas / Tres Esquinas">Las Lagunas / Tres Esquinas</option>
+                            <option value="Los Berros - Parte Alta">Los Berros - Parte Alta</option>
+                            <option value="Cochagual Norte">Cochagual Norte</option>
+                            <option value="Cochagual Centro / Sur">Cochagual Centro / Sur</option>
+                            <option value="Colonia - Parte Norte">Colonia - Parte Norte</option>
+                            <option value="Punta del Médano - Norte / Centro">Punta del Médano - Norte / Centro</option>
+                            <option value="Sarmiento General">Sarmiento (General)</option>
+                            <option value="Pocito General">Pocito (General)</option>
+                            <option value="25 de Mayo General">25 de Mayo (General)</option>
+                            <option value="Las Casuarinas">Las Casuarinas</option>
+                            <option value="Santa Rosa">Santa Rosa</option>
+                        </select>
+                    </div>
+                    <div class="sm:col-span-2">
+                        <label class="block font-bold text-gray-700 mb-1">Notas Tácticas:</label>
+                        <input type="text" id="alta-notas" placeholder="Ej. Puerta reja azul, pasar el domingo..." class="w-full p-2 border rounded-lg">
+                    </div>
+                    
+                    <div class="sm:col-span-2 bg-yellow-50 p-2.5 rounded-lg border border-yellow-200">
+                        <label class="block font-bold text-yellow-800 mb-1">Bidones y Sifones Vacíos Iniciales en Poder del Cliente:</label>
+                        <div class="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                            <div><label class="block font-semibold">Vacíos 20L:</label><input type="number" id="alta-vac-20" value="0" min="0" class="w-full p-1 border rounded bg-white"></div>
+                            <div><label class="block font-semibold">Vacíos 12L:</label><input type="number" id="alta-vac-12" value="0" min="0" class="w-full p-1 border rounded bg-white"></div>
+                            <div><label class="block font-semibold">Sifones 1L:</label><input type="number" id="alta-vac-soda" value="0" min="0" class="w-full p-1 border rounded bg-white"></div>
+                            <div><label class="block font-semibold">Sifones 500ml:</label><input type="number" id="alta-vac-soda500" value="0" min="0" class="w-full p-1 border rounded bg-white"></div>
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="block font-bold text-gray-700 mb-1">Foto de Fachada:</label>
+                        <input type="file" id="alta-foto-input" accept="image/*" capture="environment" class="hidden" onchange="previewFotoCliente(event)">
+                        <button type="button" onclick="document.getElementById('alta-foto-input').click()" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-3 rounded-lg text-xs shadow flex items-center justify-center gap-1 mb-2">
+                            <i class="fas fa-camera"></i> 📷 Abrir Cámara Directa
+                        </button>
+                        <img id="alta-foto-preview" class="preview-img hidden mt-1" alt="Vista previa fachada">
+                    </div>
+                    <div class="flex flex-col justify-end">
+                        <button type="button" onclick="capturarGpsClienteEnVivo()" class="bg-gray-700 hover:bg-gray-800 text-white font-bold py-2 px-3 rounded-lg text-xs shadow mb-1">
+                            📍 Capturar GPS Puerta en Vivo
+                        </button>
+                        <small id="gps-status-txt" class="text-gray-500 font-semibold">GPS: No capturado</small>
+                    </div>
+                </div>
+
+                <div class="mt-4 space-y-2">
+                    <button type="button" onclick="guardarRegistroCliente()" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2.5 px-4 rounded-lg text-xs sm:text-sm shadow">
+                        💾 Guardar / Actualizar Cliente
+                    </button>
+                    <button type="button" id="btn-cancelar-edit" onclick="limpiarFormCliente()" class="w-full bg-gray-400 hover:bg-gray-500 text-white font-bold py-2 px-4 rounded-lg text-xs hidden">
+                        Cancelar Edición
+                    </button>
+                </div>
+            </div>
+
+            <!-- Listado Padrón -->
+            <div id="sec-padron-cliente" class="bg-white p-4 rounded-xl shadow-sm border border-gray-200">
+                <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 mb-3">
+                    <h3 class="text-sm font-bold text-gray-800"><i class="fas fa-users text-blue-600"></i> Padrón General de Clientes (1000+)</h3>
+                    <input type="text" id="buscador-clientes" placeholder="🔍 Buscar cliente, teléfono, zona..." class="p-2 border rounded-lg text-xs w-full sm:w-64" oninput="renderPadronClientes()">
+                </div>
+                <div id="lista-padron-clientes" class="space-y-2 max-h-96 overflow-y-auto pr-1"></div>
+            </div>
+        </div>
+
+        <!-- TAB 3: STOCK -->
+        <div id="tab-stock" class="tab-content space-y-4">
+            <div class="bg-indigo-900 text-white p-4 rounded-xl shadow-md border-2 border-indigo-400">
+                <h3 class="text-sm font-bold text-indigo-200 mb-2 flex items-center justify-between">
+                    <span><i class="fas fa-hand-holding text-yellow-400"></i> Envases Retenidos en Poder de Clientes</span>
+                </h3>
+                <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 text-center text-xs mt-3">
+                    <div class="bg-indigo-800 p-2.5 rounded-lg border border-indigo-700">
+                        <span class="text-gray-300 block">Bidones 20L</span>
+                        <strong class="text-lg text-yellow-300 font-bold" id="stk-cli-tot-20">0</strong>
+                    </div>
+                    <div class="bg-indigo-800 p-2.5 rounded-lg border border-indigo-700">
+                        <span class="text-gray-300 block">Bidones 12L</span>
+                        <strong class="text-lg text-yellow-300 font-bold" id="stk-cli-tot-12">0</strong>
+                    </div>
+                    <div class="bg-indigo-800 p-2.5 rounded-lg border border-indigo-700">
+                        <span class="text-gray-300 block">Sifones 1L</span>
+                        <strong class="text-lg text-yellow-300 font-bold" id="stk-cli-tot-soda">0</strong>
+                    </div>
+                    <div class="bg-indigo-800 p-2.5 rounded-lg border border-indigo-700">
+                        <span class="text-gray-300 block">Sifones 500ml</span>
+                        <strong class="text-lg text-yellow-300 font-bold" id="stk-cli-tot-soda500">0</strong>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-white p-4 rounded-xl shadow-sm border border-gray-200">
+                <h3 class="text-sm font-bold text-gray-800 border-b pb-2 mb-3 flex items-center gap-2">
+                    <i class="fas fa-warehouse text-blue-600"></i> Control de Stock Galpón / Fábrica
+                </h3>
+                
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs">
+                    <div class="bg-green-50 p-3 rounded-xl border border-green-200">
+                        <span class="font-bold text-green-800 block mb-2 border-b border-green-200 pb-1">🟢 LLENOS EN GALPÓN</span>
+                        <div class="space-y-2">
+                            <div><label class="block font-semibold">Llenos 20L:</label><input type="number" id="stk-galpon-20" class="w-full p-1.5 border rounded" onchange="actualizarGalponEdicion()"></div>
+                            <div><label class="block font-semibold">Llenos 12L:</label><input type="number" id="stk-galpon-12" class="w-full p-1.5 border rounded" onchange="actualizarGalponEdicion()"></div>
+                            <div><label class="block font-semibold">Llenos Soda 1L:</label><input type="number" id="stk-galpon-soda" class="w-full p-1.5 border rounded" onchange="actualizarGalponEdicion()"></div>
+                            <div><label class="block font-semibold">Llenos Soda 500ml:</label><input type="number" id="stk-galpon-soda500" class="w-full p-1.5 border rounded" onchange="actualizarGalponEdicion()"></div>
+                            <div><label class="block font-semibold">Disp. Eléctricos (F/C):</label><input type="number" id="stk-galpon-fc" class="w-full p-1.5 border rounded" onchange="actualizarGalponEdicion()"></div>
+                            <div><label class="block font-semibold">Disp. de Mesa:</label><input type="number" id="stk-galpon-mesa" class="w-full p-1.5 border rounded" onchange="actualizarGalponEdicion()"></div>
+                        </div>
+                    </div>
+
+                    <div class="bg-blue-50 p-3 rounded-xl border border-blue-200">
+                        <span class="font-bold text-blue-800 block mb-2 border-b border-blue-200 pb-1">💧 VACÍOS EN FÁBRICA</span>
+                        <div class="space-y-2">
+                            <div><label class="block font-semibold">Vacíos 20L:</label><input type="number" id="stk-fabrica-20" class="w-full p-1.5 border rounded" onchange="actualizarGalponEdicion()"></div>
+                            <div><label class="block font-semibold">Vacíos 12L:</label><input type="number" id="stk-fabrica-12" class="w-full p-1.5 border rounded" onchange="actualizarGalponEdicion()"></div>
+                            <div><label class="block font-semibold">Soda Vacía 1L:</label><input type="number" id="stk-fabrica-soda" class="w-full p-1.5 border rounded" onchange="actualizarGalponEdicion()"></div>
+                            <div><label class="block font-semibold">Soda Vacía 500ml:</label><input type="number" id="stk-fabrica-soda500" class="w-full p-1.5 border rounded" onchange="actualizarGalponEdicion()"></div>
+                        </div>
+                    </div>
+
+                    <div class="bg-red-50 p-3 rounded-xl border border-red-200">
+                        <span class="font-bold text-red-800 block mb-2 border-b border-red-200 pb-1">⚠️ ROTOS / PINCHADOS</span>
+                        <div class="space-y-2">
+                            <div><label class="block font-semibold">Rotos 20L:</label><input type="number" id="stk-rotos-20" class="w-full p-1.5 border rounded" onchange="actualizarGalponEdicion()"></div>
+                            <div><label class="block font-semibold">Rotos 12L:</label><input type="number" id="stk-rotos-12" class="w-full p-1.5 border rounded" onchange="actualizarGalponEdicion()"></div>
+                            <div><label class="block font-semibold">Soda Rota 1L:</label><input type="number" id="stk-rotos-soda" class="w-full p-1.5 border rounded" onchange="actualizarGalponEdicion()"></div>
+                            <div><label class="block font-semibold">Soda Rota 500ml:</label><input type="number" id="stk-rotos-soda500" class="w-full p-1.5 border rounded" onchange="actualizarGalponEdicion()"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-white p-4 rounded-xl shadow-md border-2 border-green-600 space-y-4">
+                <h3 class="text-sm font-bold text-green-800 flex items-center gap-2">
+                    <i class="fas fa-truck-loading text-green-600"></i> Control de Carga y Vaciado Diario del Camión
+                </h3>
+
+                <div class="bg-gray-50 p-3 rounded-lg border">
+                    <p class="text-xs font-bold text-gray-700 mb-2">1. Carga de Salida al Camión:</p>
+                    <div class="grid grid-cols-2 sm:grid-cols-5 gap-2 text-xs">
+                        <div><label class="block">Cargar 20L:</label><input type="number" id="carga-camion-20" value="0" class="w-full p-1 border rounded"></div>
+                        <div><label class="block">Cargar 12L:</label><input type="number" id="carga-camion-12" value="0" class="w-full p-1 border rounded"></div>
+                        <div><label class="block">Soda 1L:</label><input type="number" id="carga-camion-soda" value="0" class="w-full p-1 border rounded"></div>
+                        <div><label class="block">Soda 500ml:</label><input type="number" id="carga-camion-soda500" value="0" class="w-full p-1 border rounded"></div>
+                        <div><label class="block">Disp. Mesa:</label><input type="number" id="carga-camion-mesa" value="0" class="w-full p-1 border rounded"></div>
+                    </div>
+                    <button onclick="cargarStockACamion()" class="mt-3 w-full bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-3 rounded-lg text-xs shadow">
+                        🚚 Confirmar Carga de Salida
+                    </button>
+                </div>
+
+                <div class="bg-gray-50 p-3 rounded-lg border">
+                    <p class="text-xs font-bold text-green-800 mb-2">2. Vaciado y Devolución al Galpón:</p>
+                    <div class="grid grid-cols-2 sm:grid-cols-5 gap-2 text-xs mb-3">
+                        <div><label class="block">Llenos 20L:</label><input type="number" id="vac-dev-lleno-20" value="0" class="w-full p-1 border rounded"></div>
+                        <div><label class="block">Llenos 12L:</label><input type="number" id="vac-dev-lleno-12" value="0" class="w-full p-1 border rounded"></div>
+                        <div><label class="block">Llenos Soda 1L:</label><input type="number" id="vac-dev-lleno-soda" value="0" class="w-full p-1 border rounded"></div>
+                        <div><label class="block">Llenos Soda 500ml:</label><input type="number" id="vac-dev-lleno-soda500" value="0" class="w-full p-1 border rounded"></div>
+                        <div><label class="block">Disp. Mesa:</label><input type="number" id="vac-dev-lleno-mesa" value="0" class="w-full p-1 border rounded"></div>
+                    </div>
+
+                    <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs mb-3">
+                        <div><label class="block">Vacíos 20L:</label><input type="number" id="vac-ing-vac-20" value="0" class="w-full p-1 border rounded"></div>
+                        <div><label class="block">Vacíos 12L:</label><input type="number" id="vac-ing-vac-12" value="0" class="w-full p-1 border rounded"></div>
+                        <div><label class="block">Soda Vacía 1L:</label><input type="number" id="vac-ing-vac-soda" value="0" class="w-full p-1 border rounded"></div>
+                        <div><label class="block">Soda Vacía 500ml:</label><input type="number" id="vac-ing-vac-soda500" value="0" class="w-full p-1 border rounded"></div>
+                    </div>
+
+                    <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs">
+                        <div><label class="block text-red-700">Rotos 20L:</label><input type="number" id="pinch-20" value="0" class="w-full p-1 border rounded bg-red-50"></div>
+                        <div><label class="block text-red-700">Rotos 12L:</label><input type="number" id="pinch-12" value="0" class="w-full p-1 border rounded bg-red-50"></div>
+                        <div><label class="block text-red-700">Soda Rota 1L:</label><input type="number" id="pinch-soda" value="0" class="w-full p-1 border rounded bg-red-50"></div>
+                        <div><label class="block text-red-700">Soda Rota 500ml:</label><input type="number" id="pinch-soda500" value="0" class="w-full p-1 border rounded bg-red-50"></div>
+                    </div>
+
+                    <button onclick="procesarVaciadoRetorno()" class="mt-3 w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-3 rounded-lg text-xs shadow">
+                        📦 Procesar Vaciado y Devolución al Galpón
+                    </button>
+                </div>
+            </div>
+
+            <div class="bg-white p-4 rounded-xl shadow-sm border border-gray-200">
+                <h3 class="text-sm font-bold text-gray-800 mb-3"><i class="fas fa-history text-blue-600"></i> Historial de Cargas Diario</h3>
+                <div id="historial-cargas-dias" class="space-y-2"></div>
+            </div>
+        </div>
+
+        <!-- TAB 4: PRECIOS -->
+        <div id="tab-precios" class="tab-content space-y-4">
+            <div class="bg-white p-4 rounded-xl shadow-md border-2 border-blue-500">
+                <h2 class="text-base font-bold text-blue-900 mb-3"><i class="fas fa-tags text-blue-600"></i> Panel Central de Tarifas y Precios</h2>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs sm:text-sm">
+                    <div>
+                        <label class="block font-bold text-gray-700 mb-1">Precio Bidón 20L ($):</label>
+                        <input type="number" id="prc-b20" class="w-full p-2 border rounded-lg" onchange="guardarPrecios()">
+                    </div>
+                    <div>
+                        <label class="block font-bold text-gray-700 mb-1">Precio Bidón 12L ($):</label>
+                        <input type="number" id="prc-b12" class="w-full p-2 border rounded-lg" onchange="guardarPrecios()">
+                    </div>
+                    <div>
+                        <label class="block font-bold text-gray-700 mb-1">Precio Soda 1L ($):</label>
+                        <input type="number" id="prc-soda" class="w-full p-2 border rounded-lg" onchange="guardarPrecios()">
+                    </div>
+                    <div>
+                        <label class="block font-bold text-gray-700 mb-1">Precio Soda 500ml ($):</label>
+                        <input type="number" id="prc-soda500" class="w-full p-2 border rounded-lg" onchange="guardarPrecios()">
+                    </div>
+                    <div>
+                        <label class="block font-bold text-gray-700 mb-1">Alquiler Dispenser F/C ($):</label>
+                        <input type="number" id="prc-fc" class="w-full p-2 border rounded-lg" onchange="guardarPrecios()">
+                    </div>
+                    <div>
+                        <label class="block font-bold text-gray-700 mb-1">Venta Dispenser Mesa ($):</label>
+                        <input type="number" id="prc-mesa" class="w-full p-2 border rounded-lg" onchange="guardarPrecios()">
+                    </div>
+                </div>
+                <button onclick="guardarPrecios(true)" class="mt-4 w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2.5 px-4 rounded-lg text-xs sm:text-sm shadow">
+                    💾 Guardar Tarifas
+                </button>
+            </div>
+        </div>
+
+        <!-- TAB 5: FINANZAS Y CAJA -->
+        <div id="tab-finanzas" class="tab-content space-y-4">
+            <div class="bg-white p-4 rounded-xl shadow-sm border border-gray-200">
+                <h3 class="text-sm font-bold text-blue-900 mb-3"><i class="fas fa-file-excel text-green-600"></i> Desglose Detallado de Ventas del Día</h3>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-xs text-center border-collapse">
+                        <thead>
+                            <tr class="bg-gray-100 border-b">
+                                <th class="p-2">Producto</th>
+                                <th class="p-2">Cant. Vendida</th>
+                                <th class="p-2">P. Unitario ($)</th>
+                                <th class="p-2">Subtotal ($)</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tb-desglose-ventas"></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="bg-white p-4 rounded-xl shadow-sm border border-gray-200">
+                <h3 class="text-sm font-bold text-blue-900 mb-3"><i class="fas fa-calendar-week text-indigo-600"></i> Resumen de Ventas de la Semana</h3>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-xs text-center border-collapse">
+                        <thead>
+                            <tr class="bg-gray-100 border-b">
+                                <th class="p-2">Producto</th>
+                                <th class="p-2">Cant. Total Semana</th>
+                                <th class="p-2">Total Acumulado ($)</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tb-desglose-semana"></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="bg-yellow-50 p-4 rounded-xl border border-yellow-300 shadow-sm">
+                <h3 class="text-sm font-bold text-yellow-800 mb-3"><i class="fas fa-coins text-yellow-600"></i> Configuración de Comisiones (Tu Ganancia)</h3>
+                <div class="grid grid-cols-2 sm:grid-cols-5 gap-2 text-xs">
+                    <div>
+                        <label class="block font-semibold">Com. 20L ($):</label>
+                        <input type="number" id="com-20" class="w-full p-1.5 border rounded bg-white" onchange="guardarComisiones()">
+                    </div>
+                    <div>
+                        <label class="block font-semibold">Com. 12L ($):</label>
+                        <input type="number" id="com-12" class="w-full p-1.5 border rounded bg-white" onchange="guardarComisiones()">
+                    </div>
+                    <div>
+                        <label class="block font-semibold">Com. Soda ($):</label>
+                        <input type="number" id="com-soda" class="w-full p-1.5 border rounded bg-white" onchange="guardarComisiones()">
+                    </div>
+                    <div>
+                        <label class="block font-semibold">Com. Soda 500 ($):</label>
+                        <input type="number" id="com-soda500" class="w-full p-1.5 border rounded bg-white" onchange="guardarComisiones()">
+                    </div>
+                    <div>
+                        <label class="block font-semibold">Com. Mesa ($):</label>
+                        <input type="number" id="com-mesa" class="w-full p-1.5 border rounded bg-white" onchange="guardarComisiones()">
+                    </div>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-3 gap-2 text-center text-xs">
+                <div class="bg-white p-3 rounded-xl border shadow-sm">
+                    <span class="text-gray-500 block">Efectivo Recaudado</span>
+                    <strong class="text-sm sm:text-base text-green-600" id="fin-efectivo">$0</strong>
+                </div>
+                <div class="bg-white p-3 rounded-xl border shadow-sm">
+                    <span class="text-gray-500 block">Transferencias</span>
+                    <strong class="text-sm sm:text-base text-blue-600" id="fin-transf">$0</strong>
+                </div>
+                <div class="bg-white p-3 rounded-xl border shadow-sm">
+                    <span class="text-gray-500 block">Gastos de Calle</span>
+                    <strong class="text-sm sm:text-base text-red-600" id="fin-gastos">$0</strong>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div class="bg-green-50 p-4 rounded-xl border-2 border-green-500 text-center">
+                    <h4 class="text-xs font-bold text-green-800">💰 Tu Ganancia Neta (Bolsillo)</h4>
+                    <div class="text-2xl font-extrabold text-green-700 mt-1" id="fin-ganancia-repartidor">$0</div>
+                </div>
+                <div class="bg-blue-50 p-4 rounded-xl border-2 border-blue-500 text-center">
+                    <h4 class="text-xs font-bold text-blue-800">🏛 Total Neto a Rendir al Galpón / Jefe</h4>
+                    <div class="text-2xl font-extrabold text-blue-700 mt-1" id="fin-rendir-dueno">$0</div>
+                </div>
+            </div>
+
+            <div class="bg-white p-4 rounded-xl shadow-sm border border-gray-200">
+                <h3 class="text-sm font-bold text-gray-800 mb-3"><i class="fas fa-receipt text-red-600"></i> Registrar Gasto de Calle</h3>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs mb-3">
+                    <input type="text" id="gasto-concepto" placeholder="Ej. Gasoil YPF" class="p-2 border rounded-lg">
+                    <input type="number" id="gasto-monto" placeholder="Monto ($)" class="p-2 border rounded-lg">
+                </div>
+                <button onclick="registrarGasto()" class="w-full bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-3 rounded-lg text-xs shadow">
+                    💸 Registrar Gasto
+                </button>
+                <div id="historial-gastos-lista" class="mt-3 space-y-1"></div>
+            </div>
+        </div>
+
+        <!-- TAB 6: GRABADOR GPS DE TRAZA -->
+        <div id="tab-grabador" class="tab-content space-y-4">
+            <div class="bg-white p-4 rounded-xl shadow-md border-2 border-red-500 text-center">
+                <div class="flex justify-between items-center mb-3">
+                    <h2 class="text-base font-bold text-red-700 flex items-center gap-2">
+                        <i class="fas fa-broadcast-tower text-red-600"></i> Grabador de Traza GPS de Reparto
+                    </h2>
+                    <span id="tag-grabando" class="hidden text-xs bg-red-600 text-white px-2 py-0.5 rounded-full font-bold animate-pulse">🔴 Grabando...</span>
+                </div>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs mb-3">
+                    <input type="text" id="nombre-recorrido-nuevo" placeholder="Nombre (Ej. Sarmiento Calle Larga)" class="p-2 border rounded-lg text-left">
+                    <button id="btn-iniciar-rec" onclick="toggleGrabacionGPS()" class="bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 rounded-lg shadow">
+                        🔴 Iniciar Grabación GPS
+                    </button>
+                </div>
+                <p class="text-xs text-gray-500">Puntos GPS tomados: <strong id="cant-puntos-gps" class="text-gray-800">0</strong></p>
+            </div>
+
+            <div class="bg-white p-4 rounded-xl shadow-sm border border-gray-200">
+                <h3 class="text-sm font-bold text-gray-800 mb-3"><i class="fas fa-route text-blue-600"></i> Recorridos Guardados</h3>
+                <div id="lista-recorridos-guardados" class="space-y-2"></div>
+            </div>
+        </div>
+
+        <!-- TAB 7: CONFIGURACIÓN & ACERCA DE -->
+        <div id="tab-config" class="tab-content space-y-4">
+            <!-- Selector Modo Oscuro -->
+            <div class="bg-white p-4 rounded-xl shadow-sm border border-gray-200 flex justify-between items-center">
+                <div>
+                    <h3 class="text-sm font-bold text-gray-800 flex items-center gap-2">
+                        <i class="fas fa-moon text-indigo-500"></i> Modo Oscuro
+                    </h3>
+                    <p class="text-xs text-gray-500">Ideal para cuidar la vista y ahorrar batería</p>
+                </div>
+                <button onclick="toggleDarkMode()" id="btn-dark-toggle" class="bg-indigo-600 text-white text-xs px-4 py-2 rounded-lg font-bold shadow">
+                    🌙 Activar Modo Oscuro
+                </button>
+            </div>
+
+            <!-- Copias de Seguridad (Backup) -->
+            <div class="bg-white p-4 rounded-xl shadow-sm border border-gray-200 space-y-3">
+                <h3 class="text-sm font-bold text-gray-800 flex items-center gap-2">
+                    <i class="fas fa-database text-green-600"></i> Copias de Seguridad
+                </h3>
+                <p class="text-xs text-gray-500">Exportá o importá toda la información de la app (clientes, ventas, stock) en un archivo seguro.</p>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
+                    <button onclick="exportarBackupJSON()" class="bg-green-600 hover:bg-green-700 text-white font-bold py-2.5 px-4 rounded-lg shadow flex items-center justify-center gap-2">
+                        <i class="fas fa-file-export"></i> Exportar Datos (Backup JSON)
+                    </button>
+                    <button onclick="document.getElementById('input-import-json').click()" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2.5 px-4 rounded-lg shadow flex items-center justify-center gap-2">
+                        <i class="fas fa-file-import"></i> Importar Datos
+                    </button>
+                    <input type="file" id="input-import-json" accept=".json" class="hidden" onchange="importarBackupJSON(event)">
+                </div>
+            </div>
+
+            <!-- Sección "Acerca de..." con Fondo de Olas Oﬁcial -->
+            <div class="rounded-2xl shadow-xl overflow-hidden text-white bg-about-waves border border-blue-500/30">
+                <div class="p-6 space-y-4">
+                    <div class="text-center space-y-1">
+                        <span class="bg-yellow-500 text-black px-3 py-0.5 rounded-full text-xs font-bold uppercase tracking-wide">Versión 1.8.3 Pro</span>
+                        <h2 class="text-2xl font-extrabold text-blue-300">Chosen SoderApp</h2>
+                        <p class="text-xs text-gray-200">Sistema de Control Total Satelital & Gestión de Soda y Agua</p>
+                    </div>
+
+                    <div class="bg-gray-900/60 p-4 rounded-xl border border-white/10 space-y-2 text-xs">
+                        <p><strong>👑 Creador & Propietario:</strong> Mario Leandro Tejada "Chosen"</p>
+                        <p><strong>📍 Ubicación:</strong> San Juan, Argentina</p>
+                        <p><strong>🚚 Zonas Cobertura:</strong> Sarmiento, Media Agua, Los Berros, Cochagual y aledaños.</p>
+                        <p><strong>⚡ Offline First:</strong> Funciona 100% sin internet guardando todo localmente en tu celular.</p>
+                    </div>
+
+                    <a href="https://wa.me/5492645158230?text=Hola%20Mario,%20te%20contacto%20desde%20Chosen%20SoderApp" target="_blank" class="w-full bg-green-600 hover:bg-green-500 text-white font-bold py-3 px-4 rounded-xl text-xs sm:text-sm shadow-lg flex items-center justify-center gap-2 border border-green-400 transition transform active:scale-95">
+                        <i class="fab fa-whatsapp text-lg"></i> Contactar al Creador por WhatsApp (+54 9 2645158230)
+                    </a>
+                </div>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- Barra de Navegación Inferior -->
+    <nav class="bg-white border-t border-gray-200 fixed bottom-0 left-0 right-0 shadow-lg flex justify-around p-2 z-40 text-xs">
+        <button onclick="switchTab('recorrido')" class="nav-btn flex flex-col items-center text-blue-700 font-bold" id="nav-recorrido">
+            <i class="fas fa-route text-lg"></i><span>Ruta</span>
+        </button>
+        <button onclick="switchTab('clientes')" class="nav-btn flex flex-col items-center text-gray-500 font-semibold" id="nav-clientes">
+            <i class="fas fa-users text-lg"></i><span>Clientes</span>
+        </button>
+        <button onclick="switchTab('stock')" class="nav-btn flex flex-col items-center text-gray-500 font-semibold" id="nav-stock">
+            <i class="fas fa-warehouse text-lg"></i><span>Stock</span>
+        </button>
+        <button onclick="switchTab('precios')" class="nav-btn flex flex-col items-center text-gray-500 font-semibold" id="nav-precios">
+            <i class="fas fa-tags text-lg"></i><span>Precios</span>
+        </button>
+        <button onclick="switchTab('finanzas')" class="nav-btn flex flex-col items-center text-gray-500 font-semibold" id="nav-finanzas">
+            <i class="fas fa-wallet text-lg"></i><span>Caja</span>
+        </button>
+        <button onclick="switchTab('grabador')" class="nav-btn flex flex-col items-center text-gray-500 font-semibold" id="nav-grabador">
+            <i class="fas fa-satellite text-lg"></i><span>GPS</span>
+        </button>
+        <button onclick="switchTab('config')" class="nav-btn flex flex-col items-center text-gray-500 font-semibold" id="nav-config">
+            <i class="fas fa-cog text-lg"></i><span>Ajustes</span>
+        </button>
+    </nav>
+
+    <!-- MODAL ALERTA -->
+    <div id="app-modal" class="fixed inset-0 bg-black bg-opacity-50 hidden flex items-center justify-center z-50 p-4">
+        <div class="bg-white p-5 rounded-2xl max-w-sm w-full space-y-3 text-center shadow-xl">
+            <h3 id="modal-title" class="text-base font-bold text-gray-800">Alerta</h3>
+            <p id="modal-msg" class="text-xs text-gray-600"></p>
+            <button onclick="cerrarModal()" class="w-full bg-blue-600 text-white font-bold py-2 rounded-lg text-xs shadow">Aceptar</button>
+        </div>
+    </div>
+
+    <!-- Leaflet JS -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+    <!-- LÓGICA JS COMPLETA -->
+    <script>
+        let appState = {
+            precios: { b20: 3000, b12: 2200, soda: 1800, soda500: 1200, fc: 8000, mesa: 15000 },
+            comisiones: { b20: 500, b12: 400, soda: 300, soda500: 200, mesa: 2000 },
+            galpon: {
+                b20: { llenos: 150, fabrica: 50, rotos: 2 },
+                b12: { llenos: 80, fabrica: 20, rotos: 1 },
+                soda: { llenos: 60, fabrica: 10, rotos: 3 },
+                soda500: { llenos: 80, fabrica: 15, rotos: 1 },
+                fc: { llenos: 10, fabrica: 2 },
+                mesa: { llenos: 5 }
+            },
+            camionEnVivo: {
+                llenos: { b20: 0, b12: 0, soda: 0, soda500: 0, mesa: 0 },
+                vacios: { b20: 0, b12: 0, soda: 0, soda500: 0 }
+            },
+            ventasDelDia: { b20: 0, b12: 0, soda: 0, soda500: 0, mesa: 0 },
+            ventasSemana: { b20: 0, b12: 0, soda: 0, soda500: 0, mesa: 0 },
+            finanzas: { efectivo: 0, transferencia: 0, gastos: [] },
+            estadoRuta: "Detenido",
+            clienteSeleccionadoId: null,
+            tempFotoData: "", tempGpsData: null,
+            darkMode: false,
+            tipoMapa: "satelite",
+            clientes: [
+                { id: 1, nombre: "Juan Pérez", zona: "Villa Media Agua", direccion: "Calle Barboza s/n", tel: "2645123456", dia: "Lunes", tipo: "Cliente Fijo", notas: "Puerta reja verde", estado: "Pendiente", activo: true, gps: { lat: -31.9800, lng: -68.4320 }, vacios: { b20: 2, b12: 0, soda: 1, soda500: 0 }, deuda: 0, totalHistorico: 15000 },
+                { id: 2, nombre: "María Gómez", zona: "Los Berros - Parte Alta", direccion: "Ruta 40", tel: "2644987654", dia: "Lunes", tipo: "Posible Cliente", notas: "Al lado del almacén", estado: "Pendiente", activo: true, gps: { lat: -31.9500, lng: -68.4100 }, vacios: { b20: 0, b12: 0, soda: 0, soda500: 0 }, deuda: 0, totalHistorico: 0 }
+            ],
+            historialCargas: [],
+            recorridosGrabados: []
+        };
+
+        let mapLeaflet = null;
+        let mapMarkers = [];
+        let layerSatelite = null;
+        let layerCalles = null;
+        let layerEtiquetas = null;
+
+        function cerrarSplash() { document.getElementById('splash-screen').style.display = 'none'; }
+
+        function initApp() {
+            document.getElementById('sel-fecha-trabajo').value = new Date().toISOString().split('T')[0];
+            cargarStorage();
+            if (appState.darkMode) document.body.classList.add('dark-mode');
+            cargarInputsPrecios();
+            cargarInputsComisiones();
+            initMapaLeaflet();
+            renderClientesRuta();
+            renderPadronClientes();
+            renderMetricasClientes();
+            cargarInputsStockGalpon();
+            actualizarStockCamionEnVivoUI();
+            actualizarFinanzasUI();
+            renderHistorialCargas();
+            renderRecorridosGuardados();
+            actualizarEstadoRutaUI();
+            actualizarEnvasesClientesTotalesUI();
+        }
+
+        function initMapaLeaflet() {
+            mapLeaflet = L.map('mapa-calles-real').setView([-31.982, -68.433], 13);
+            
+            layerSatelite = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+                maxZoom: 19, attribution: '© Esri'
+            });
+            layerEtiquetas = L.tileLayer('https://services.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}', {
+                maxZoom: 19
+            });
+            layerCalles = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                maxZoom: 19, attribution: '© OpenStreetMap'
+            });
+
+            if (appState.tipoMapa === 'calles') {
+                layerCalles.addTo(mapLeaflet);
+                document.getElementById('lbl-tipo-mapa').innerText = 'Cambiar a Satélite';
+            } else {
+                layerSatelite.addTo(mapLeaflet);
+                layerEtiquetas.addTo(mapLeaflet);
+                document.getElementById('lbl-tipo-mapa').innerText = 'Cambiar a Calles';
+            }
+        }
+
+        function toggleModoMapa() {
+            if (appState.tipoMapa === 'satelite') {
+                mapLeaflet.removeLayer(layerSatelite);
+                mapLeaflet.removeLayer(layerEtiquetas);
+                layerCalles.addTo(mapLeaflet);
+                appState.tipoMapa = 'calles';
+                document.getElementById('lbl-tipo-mapa').innerText = 'Cambiar a Satélite';
+            } else {
+                mapLeaflet.removeLayer(layerCalles);
+                layerSatelite.addTo(mapLeaflet);
+                layerEtiquetas.addTo(mapLeaflet);
+                appState.tipoMapa = 'satelite';
+                document.getElementById('lbl-tipo-mapa').innerText = 'Cambiar a Calles';
+            }
+            guardarStorage();
+        }
+
+        function toggleDarkMode() {
+            appState.darkMode = !appState.darkMode;
+            if (appState.darkMode) {
+                document.body.classList.add('dark-mode');
+                document.getElementById('btn-dark-toggle').innerText = '☀️ Activar Modo Claro';
+            } else {
+                document.body.classList.remove('dark-mode');
+                document.getElementById('btn-dark-toggle').innerText = '🌙 Activar Modo Oscuro';
+            }
+            guardarStorage();
+        }
+
+        function exportarBackupJSON() {
+            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(appState));
+            const downloadAnchor = document.createElement('a');
+            downloadAnchor.setAttribute("href", dataStr);
+            downloadAnchor.setAttribute("download", `soderapp_backup_${new Date().toISOString().split('T')[0]}.json`);
+            document.body.appendChild(downloadAnchor);
+            downloadAnchor.click();
+            downloadAnchor.remove();
+        }
+
+        function importarBackupJSON(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const importedState = JSON.parse(e.target.result);
+                    if (importedState && importedState.clientes) {
+                        appState = importedState;
+                        guardarStorage();
+                        location.reload();
+                    } else {
+                        mostrarModal("Error", "Archivo de backup no válido.");
+                    }
+                } catch (err) {
+                    mostrarModal("Error", "No se pudo leer el archivo de backup.");
+                }
+            };
+            reader.readAsText(file);
+        }
+
+        function guardarStorage() {
+            try {
+                localStorage.setItem('chosen_soderapp_v183_data', JSON.stringify(appState));
+            } catch (e) {
+                console.error("Error storage:", e);
+                mostrarModal("Alerta de Memoria", "La imagen es muy pesada. Intente con una foto más liviana.");
+            }
+        }
+
+        function cargarStorage() {
+            const data = localStorage.getItem('chosen_soderapp_v183_data');
+            if (data) { try { appState = JSON.parse(data); } catch(e) {} }
+        }
+
+        function switchTab(tabId) {
+            document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.nav-btn').forEach(b => {
+                b.classList.remove('text-blue-700', 'font-bold');
+                b.classList.add('text-gray-500', 'font-semibold');
+            });
+            
+            const targetTab = document.getElementById('tab-' + tabId);
+            if(targetTab) targetTab.classList.add('active');
+
+            const navBtn = document.getElementById('nav-' + tabId);
+            if (navBtn) {
+                navBtn.classList.remove('text-gray-500', 'font-semibold');
+                navBtn.classList.add('text-blue-700', 'font-bold');
+            }
+
+            if (tabId === 'recorrido' && mapLeaflet) {
+                setTimeout(() => mapLeaflet.invalidateSize(), 300);
+            }
+        }
+
+        function toggleEstadoRuta() {
+            if (appState.estadoRuta === 'Activo') cambiarEstadoRuta('Pausado');
+            else cambiarEstadoRuta('Activo');
+        }
+
+        function cambiarEstadoRuta(nuevoEstado) {
+            appState.estadoRuta = nuevoEstado;
+            guardarStorage();
+            actualizarEstadoRutaUI();
+        }
+
+        function actualizarEstadoRutaUI() {
+            const lbl = document.getElementById('lbl-estado-ruta');
+            const lblTxt = document.getElementById('lbl-estado-ruta-txt');
+
+            if (lbl) {
+                lbl.innerText = appState.estadoRuta.toUpperCase();
+                if (lblTxt) lblTxt.innerText = appState.estadoRuta;
+                
+                if (appState.estadoRuta === 'Activo') {
+                    lbl.className = 'text-xs px-2.5 py-1 rounded bg-green-600 text-white font-bold';
+                } else if (appState.estadoRuta === 'Pausado') {
+                    lbl.className = 'text-xs px-2.5 py-1 rounded bg-yellow-500 text-white font-bold';
+                } else {
+                    lbl.className = 'text-xs px-2.5 py-1 rounded bg-red-600 text-white font-bold';
+                }
+            }
+        }
+
+        function finalizarRecorridoIrAVaciado() {
+            cambiarEstadoRuta('Finalizado');
+            switchTab('stock');
+            
+            document.getElementById('vac-dev-lleno-20').value = appState.camionEnVivo.llenos.b20;
+            document.getElementById('vac-dev-lleno-12').value = appState.camionEnVivo.llenos.b12;
+            document.getElementById('vac-dev-lleno-soda').value = appState.camionEnVivo.llenos.soda;
+            document.getElementById('vac-dev-lleno-soda500').value = appState.camionEnVivo.llenos.soda500 || 0;
+            document.getElementById('vac-dev-lleno-mesa').value = appState.camionEnVivo.llenos.mesa;
+
+            document.getElementById('vac-ing-vac-20').value = appState.camionEnVivo.vacios.b20;
+            document.getElementById('vac-ing-vac-12').value = appState.camionEnVivo.vacios.b12;
+            document.getElementById('vac-ing-vac-soda').value = appState.camionEnVivo.vacios.soda;
+            document.getElementById('vac-ing-vac-soda500').value = appState.camionEnVivo.vacios.soda500 || 0;
+
+            mostrarModal('Recorrido Finalizado', 'Revisá los datos en la pantalla de Vaciado y Devolución.');
+        }
+
+        function cargarInputsPrecios() {
+            document.getElementById('prc-b20').value = appState.precios.b20;
+            document.getElementById('prc-b12').value = appState.precios.b12;
+            document.getElementById('prc-soda').value = appState.precios.soda;
+            document.getElementById('prc-soda500').value = appState.precios.soda500 || 1200;
+            document.getElementById('prc-fc').value = appState.precios.fc;
+            document.getElementById('prc-mesa').value = appState.precios.mesa;
+        }
+
+        function guardarPrecios(notificar = false) {
+            appState.precios.b20 = parseInt(document.getElementById('prc-b20').value) || 0;
+            appState.precios.b12 = parseInt(document.getElementById('prc-b12').value) || 0;
+            appState.precios.soda = parseInt(document.getElementById('prc-soda').value) || 0;
+            appState.precios.soda500 = parseInt(document.getElementById('prc-soda500').value) || 0;
+            appState.precios.fc = parseInt(document.getElementById('prc-fc').value) || 0;
+            appState.precios.mesa = parseInt(document.getElementById('prc-mesa').value) || 0;
+            guardarStorage(); actualizarFinanzasUI();
+            if (notificar) mostrarModal('Precios Guardados', 'Las tarifas se actualizaron correctamente.');
+        }
+
+        function cargarInputsComisiones() {
+            document.getElementById('com-20').value = appState.comisiones.b20;
+            document.getElementById('com-12').value = appState.comisiones.b12;
+            document.getElementById('com-soda').value = appState.comisiones.soda;
+            document.getElementById('com-soda500').value = appState.comisiones.soda500 || 200;
+            document.getElementById('com-mesa').value = appState.comisiones.mesa;
+        }
+
+        function guardarComisiones() {
+            appState.comisiones.b20 = parseInt(document.getElementById('com-20').value) || 0;
+            appState.comisiones.b12 = parseInt(document.getElementById('com-12').value) || 0;
+            appState.comisiones.soda = parseInt(document.getElementById('com-soda').value) || 0;
+            appState.comisiones.soda500 = parseInt(document.getElementById('com-soda500').value) || 0;
+            appState.comisiones.mesa = parseInt(document.getElementById('com-mesa').value) || 0;
+            guardarStorage(); actualizarFinanzasUI();
+        }
+
+        function cargarInputsStockGalpon() {
+            document.getElementById('stk-galpon-20').value = appState.galpon.b20.llenos;
+            document.getElementById('stk-galpon-12').value = appState.galpon.b12.llenos;
+            document.getElementById('stk-galpon-soda').value = appState.galpon.soda.llenos;
+            document.getElementById('stk-galpon-soda500').value = appState.galpon.soda500 ? appState.galpon.soda500.llenos : 0;
+            document.getElementById('stk-galpon-fc').value = appState.galpon.fc.llenos;
+            document.getElementById('stk-galpon-mesa').value = appState.galpon.mesa.llenos;
+
+            document.getElementById('stk-fabrica-20').value = appState.galpon.b20.fabrica;
+            document.getElementById('stk-fabrica-12').value = appState.galpon.b12.fabrica;
+            document.getElementById('stk-fabrica-soda').value = appState.galpon.soda.fabrica;
+            document.getElementById('stk-fabrica-soda500').value = appState.galpon.soda500 ? appState.galpon.soda500.fabrica : 0;
+
+            document.getElementById('stk-rotos-20').value = appState.galpon.b20.rotos || 0;
+            document.getElementById('stk-rotos-12').value = appState.galpon.b12.rotos || 0;
+            document.getElementById('stk-rotos-soda').value = appState.galpon.soda.rotos || 0;
+            document.getElementById('stk-rotos-soda500').value = appState.galpon.soda500 ? (appState.galpon.soda500.rotos || 0) : 0;
+        }
+
+        function actualizarGalponEdicion() {
+            appState.galpon.b20.llenos = parseInt(document.getElementById('stk-galpon-20').value) || 0;
+            appState.galpon.b12.llenos = parseInt(document.getElementById('stk-galpon-12').value) || 0;
+            appState.galpon.soda.llenos = parseInt(document.getElementById('stk-galpon-soda').value) || 0;
+            if(!appState.galpon.soda500) appState.galpon.soda500 = { llenos:0, fabrica:0, rotos:0 };
+            appState.galpon.soda500.llenos = parseInt(document.getElementById('stk-galpon-soda500').value) || 0;
+            appState.galpon.fc.llenos = parseInt(document.getElementById('stk-galpon-fc').value) || 0;
+            appState.galpon.mesa.llenos = parseInt(document.getElementById('stk-galpon-mesa').value) || 0;
+
+            appState.galpon.b20.fabrica = parseInt(document.getElementById('stk-fabrica-20').value) || 0;
+            appState.galpon.b12.fabrica = parseInt(document.getElementById('stk-fabrica-12').value) || 0;
+            appState.galpon.soda.fabrica = parseInt(document.getElementById('stk-fabrica-soda').value) || 0;
+            appState.galpon.soda500.fabrica = parseInt(document.getElementById('stk-fabrica-soda500').value) || 0;
+
+            appState.galpon.b20.rotos = parseInt(document.getElementById('stk-rotos-20').value) || 0;
+            appState.galpon.b12.rotos = parseInt(document.getElementById('stk-rotos-12').value) || 0;
+            appState.galpon.soda.rotos = parseInt(document.getElementById('stk-rotos-soda').value) || 0;
+            appState.galpon.soda500.rotos = parseInt(document.getElementById('stk-rotos-soda500').value) || 0;
+
+            guardarStorage();
+        }
+
+        function cargarStockACamion() {
+            const c20 = parseInt(document.getElementById('carga-camion-20').value) || 0;
+            const c12 = parseInt(document.getElementById('carga-camion-12').value) || 0;
+            const cSoda = parseInt(document.getElementById('carga-camion-soda').value) || 0;
+            const cSoda500 = parseInt(document.getElementById('carga-camion-soda500').value) || 0;
+            const cMesa = parseInt(document.getElementById('carga-camion-mesa').value) || 0;
+
+            if(!appState.galpon.soda500) appState.galpon.soda500 = { llenos:0, fabrica:0, rotos:0 };
+
+            if(c20 > appState.galpon.b20.llenos || c12 > appState.galpon.b12.llenos || cSoda > appState.galpon.soda.llenos || cSoda500 > appState.galpon.soda500.llenos || cMesa > appState.galpon.mesa.llenos) {
+                mostrarModal('Stock Insuficiente', 'No podés cargar más de lo disponible en Galpón.'); return;
+            }
+
+            appState.galpon.b20.llenos -= c20; 
+            appState.galpon.b12.llenos -= c12;
+            appState.galpon.soda.llenos -= cSoda; 
+            appState.galpon.soda500.llenos -= cSoda500;
+            appState.galpon.mesa.llenos -= cMesa;
+
+            if(!appState.camionEnVivo.llenos.soda500) appState.camionEnVivo.llenos.soda500 = 0;
+            appState.camionEnVivo.llenos.b20 += c20; 
+            appState.camionEnVivo.llenos.b12 += c12;
+            appState.camionEnVivo.llenos.soda += cSoda; 
+            appState.camionEnVivo.llenos.soda500 += cSoda500;
+            appState.camionEnVivo.llenos.mesa += cMesa;
+
+            const diaSel = document.getElementById('sel-dia-trabajo').value;
+            appState.historialCargas.push({
+                id: Date.now(), fecha: new Date().toLocaleDateString(), dia: diaSel,
+                c20, c12, cSoda, cSoda500, cMesa
+            });
+
+            document.getElementById('carga-camion-20').value = 0; 
+            document.getElementById('carga-camion-12').value = 0;
+            document.getElementById('carga-camion-soda').value = 0; 
+            document.getElementById('carga-camion-soda500').value = 0;
+            document.getElementById('carga-camion-mesa').value = 0;
+
+            cargarInputsStockGalpon(); actualizarStockCamionEnVivoUI(); renderHistorialCargas(); guardarStorage();
+            mostrarModal('Carga Exitosa', 'El camión se cargó y se descontó del Galpón correctamente.');
+        }
+
+        function actualizarStockCamionEnVivoUI() {
+            document.getElementById('vivo-lleno-20').innerText = appState.camionEnVivo.llenos.b20;
+            document.getElementById('vivo-lleno-12').innerText = appState.camionEnVivo.llenos.b12;
+            document.getElementById('vivo-lleno-soda').innerText = appState.camionEnVivo.llenos.soda;
+            document.getElementById('vivo-lleno-soda500').innerText = appState.camionEnVivo.llenos.soda500 || 0;
+            document.getElementById('vivo-lleno-mesa').innerText = appState.camionEnVivo.llenos.mesa;
+
+            document.getElementById('vivo-vac-20').innerText = appState.camionEnVivo.vacios.b20;
+            document.getElementById('vivo-vac-12').innerText = appState.camionEnVivo.vacios.b12;
+            document.getElementById('vivo-vac-soda').innerText = appState.camionEnVivo.vacios.soda;
+            document.getElementById('vivo-vac-soda500').innerText = appState.camionEnVivo.vacios.soda500 || 0;
+        }
+
+        function procesarVaciadoRetorno() {
+            const devLleno20 = parseInt(document.getElementById('vac-dev-lleno-20').value) || 0;
+            const devLleno12 = parseInt(document.getElementById('vac-dev-lleno-12').value) || 0;
+            const devLlenoSoda = parseInt(document.getElementById('vac-dev-lleno-soda').value) || 0;
+            const devLlenoSoda500 = parseInt(document.getElementById('vac-dev-lleno-soda500').value) || 0;
+            const devLlenoMesa = parseInt(document.getElementById('vac-dev-lleno-mesa').value) || 0;
+
+            const ingVac20 = parseInt(document.getElementById('vac-ing-vac-20').value) || 0;
+            const ingVac12 = parseInt(document.getElementById('vac-ing-vac-12').value) || 0;
+            const ingVacSoda = parseInt(document.getElementById('vac-ing-vac-soda').value) || 0;
+            const ingVacSoda500 = parseInt(document.getElementById('vac-ing-vac-soda500').value) || 0;
+
+            const pinch20 = parseInt(document.getElementById('pinch-20').value) || 0;
+            const pinch12 = parseInt(document.getElementById('pinch-12').value) || 0;
+            const pinchSoda = parseInt(document.getElementById('pinch-soda').value) || 0;
+            const pinchSoda500 = parseInt(document.getElementById('pinch-soda500').value) || 0;
+
+            if(!appState.galpon.soda500) appState.galpon.soda500 = { llenos:0, fabrica:0, rotos:0 };
+
+            appState.galpon.b20.llenos += devLleno20; 
+            appState.galpon.b12.llenos += devLleno12;
+            appState.galpon.soda.llenos += devLlenoSoda; 
+            appState.galpon.soda500.llenos += devLlenoSoda500;
+            appState.galpon.mesa.llenos += devLlenoMesa;
+
+            appState.galpon.b20.fabrica += ingVac20; 
+            appState.galpon.b12.fabrica += ingVac12;
+            appState.galpon.soda.fabrica += ingVacSoda;
+            appState.galpon.soda500.fabrica += ingVacSoda500;
+
+            appState.galpon.b20.rotos = (appState.galpon.b20.rotos || 0) + pinch20;
+            appState.galpon.b12.rotos = (appState.galpon.b12.rotos || 0) + pinch12;
+            appState.galpon.soda.rotos = (appState.galpon.soda.rotos || 0) + pinchSoda;
+            appState.galpon.soda500.rotos = (appState.galpon.soda500.rotos || 0) + pinchSoda500;
+
+            appState.camionEnVivo = { 
+                llenos: { b20: 0, b12: 0, soda: 0, soda500: 0, mesa: 0 }, 
+                vacios: { b20: 0, b12: 0, soda: 0, soda500: 0 } 
+            };
+
+            cargarInputsStockGalpon(); actualizarStockCamionEnVivoUI(); guardarStorage();
+            mostrarModal('Vaciado Completado', 'Se acreditaron los retornos al Galpón correctamente.');
+        }
+
+        function renderHistorialCargas() {
+            const cont = document.getElementById('historial-cargas-dias'); cont.innerHTML = '';
+            if (!appState.historialCargas || appState.historialCargas.length === 0) {
+                cont.innerHTML = '<p class="text-xs text-gray-500">No hay cargas registradas aún.</p>'; return;
+            }
+            appState.historialCargas.forEach(h => {
+                cont.innerHTML += `
+                    <div class="bg-gray-50 border p-2.5 rounded-lg flex justify-between items-center text-xs">
+                        <div>
+                            <strong>📅 ${h.dia} (${h.fecha})</strong><br>
+                            <span class="text-gray-600">Carga: 20L: ${h.c20} | 12L: ${h.c12} | Soda: ${h.cSoda} | Mesa: ${h.cMesa}</span>
+                        </div>
+                        <button onclick="eliminarHistorialCarga(${h.id})" class="text-red-600 hover:text-red-800 font-bold px-2 py-1">🗑</button>
+                    </div>`;
+            });
+        }
+
+        function eliminarHistorialCarga(id) {
+            appState.historialCargas = appState.historialCargas.filter(h => h.id !== id);
+            guardarStorage(); renderHistorialCargas();
+        }
+
+        function renderClientesRuta() {
+            const diaSel = document.getElementById('sel-dia-trabajo').value;
+            const zonaSel = document.getElementById('select-zona').value;
+            const listaContainer = document.getElementById('lista-clientes-ruta');
+            listaContainer.innerHTML = '';
+
+            mapMarkers.forEach(m => mapLeaflet.removeLayer(m));
+            mapMarkers = [];
+
+            const filtrados = appState.clientes.filter(c => (zonaSel === "Todas" || c.zona === zonaSel) && c.dia === diaSel && c.activo !== false);
+            document.getElementById('cant-ruta').innerText = filtrados.length;
+
+            const colores = { Pendiente: '#f97316', Entregado: '#22c55e', NoEstaba: '#ef4444', Volver: '#eab308', NoDejo: '#94a3b8', 'Posible Cliente': '#3b82f6', 'Cliente Nuevo': '#9333ea' };
+            const bounds = [];
+
+            filtrados.forEach((c, idx) => {
+                const est = c.estado || 'Pendiente';
+                const colorHex = colores[est] || (c.tipo === 'Posible Cliente' ? '#3b82f6' : '#f97316');
+
+                const el = document.createElement('div');
+                el.className = 'border-l-4 rounded-lg p-2.5 bg-white border shadow-sm flex justify-between items-center text-xs';
+                el.style.borderLeftColor = colorHex;
+
+                el.innerHTML = `
+                    <div>
+                        <strong>${idx + 1}. ${c.nombre}</strong> <span class="text-blue-600">(${c.tipo||'Cliente Fijo'})</span><br>
+                        <span class="text-gray-500">${c.direccion} - Estado: <b>${est}</b></span>
+                    </div>
+                    <button onclick="abrirFichaCliente(${c.id})" class="bg-gray-800 hover:bg-black text-white px-2.5 py-1 rounded font-bold">
+                        Atender
+                    </button>`;
+                listaContainer.appendChild(el);
+
+                if (c.gps && c.gps.lat && c.gps.lng) {
+                    const customIcon = L.divIcon({
+                        className: 'custom-div-icon',
+                        html: `<div style="background-color:${colorHex}; width:28px; height:28px; border-radius:50%; color:white; font-weight:bold; display:flex; align-items:center; justify-content:center; border:2px solid white; box-shadow:0 2px 4px rgba(0,0,0,0.3); font-size:0.8rem;">${idx + 1}</div>`,
+                        iconSize: [28, 28],
+                        iconAnchor: [14, 14]
+                    });
+
+                    const marker = L.marker([c.gps.lat, c.gps.lng], { icon: customIcon }).addTo(mapLeaflet)
+                        .bindPopup(`<b>${c.nombre}</b><br>${c.direccion}<br>Estado: ${est}`);
+                    
+                    marker.on('click', () => abrirFichaCliente(c.id));
+                    mapMarkers.push(marker);
+                    bounds.push([c.gps.lat, c.gps.lng]);
+                }
+            });
+
+            if (bounds.length > 0) {
+                mapLeaflet.fitBounds(bounds, { padding: [30, 30] });
+            }
+        }
+
+        function abrirFichaCliente(id) {
+            const cli = appState.clientes.find(c => c.id === id); if (!cli) return;
+            appState.clienteSeleccionadoId = id;
+            document.getElementById('fc-nombre').innerText = cli.nombre;
+            document.getElementById('fc-tipo').innerText = cli.tipo || 'Cliente Fijo';
+            document.getElementById('fc-direccion').innerText = cli.direccion;
+            document.getElementById('fc-notas').innerText = cli.notas || 'Sin notas';
+            document.getElementById('fc-tel').innerText = cli.tel || 'S/T';
+            
+            const v20 = cli.vacios ? (cli.vacios.b20 || 0) : 0;
+            const v12 = cli.vacios ? (cli.vacios.b12 || 0) : 0;
+            const vsoda = cli.vacios ? (cli.vacios.soda || 0) : 0;
+            const vsoda500 = cli.vacios ? (cli.vacios.soda500 || 0) : 0;
+            document.getElementById('fc-vacios-info').innerText = `20L: ${v20} | 12L: ${v12} | Sif.1L: ${vsoda} | Sif.500ml: ${vsoda500}`;
+
+            document.getElementById('vta-estado-visita').value = cli.estado || 'Pendiente';
+
+            const img = document.getElementById('fc-foto');
+            if (cli.foto) { img.src = cli.foto; img.classList.remove('hidden'); } else { img.classList.add('hidden'); }
+            document.getElementById('ficha-cliente').classList.remove('hidden');
+            calcularVenta();
+        }
+
+        function cambiarEstadoDirecto() {
+            const cli = appState.clientes.find(c => c.id === appState.clienteSeleccionadoId);
+            if (cli) { cli.estado = document.getElementById('vta-estado-visita').value; guardarStorage(); renderClientesRuta(); }
+        }
+
+        function calcularVenta() {
+            const c20 = parseInt(document.getElementById('vta-cant-20').value) || 0;
+            const c12 = parseInt(document.getElementById('vta-cant-12').value) || 0;
+            const cSoda = parseInt(document.getElementById('vta-cant-soda').value) || 0;
+            const cSoda500 = parseInt(document.getElementById('vta-cant-soda500').value) || 0;
+            const cMesa = parseInt(document.getElementById('vta-cant-mesa').value) || 0;
+
+            const total = (c20 * appState.precios.b20) + (c12 * appState.precios.b12) + (cSoda * appState.precios.soda) + (cSoda500 * (appState.precios.soda500 || 1200)) + (cMesa * appState.precios.mesa);
+            document.getElementById('vta-total').value = total; 
+            document.getElementById('vta-pago').value = total;
+        }
+
+        function completarVenta() {
+            const cli = appState.clientes.find(c => c.id === appState.clienteSeleccionadoId);
+            if (!cli) return;
+            const total = parseInt(document.getElementById('vta-total').value) || 0;
+            const medio = document.getElementById('vta-medio').value;
+
+            const c20 = parseInt(document.getElementById('vta-cant-20').value) || 0;
+            const c12 = parseInt(document.getElementById('vta-cant-12').value) || 0;
+            const cSoda = parseInt(document.getElementById('vta-cant-soda').value) || 0;
+            const cSoda500 = parseInt(document.getElementById('vta-cant-soda500').value) || 0;
+            const cMesa = parseInt(document.getElementById('vta-cant-mesa').value) || 0;
+
+            const dev20 = parseInt(document.getElementById('vta-dev-20').value) || 0;
+            const dev12 = parseInt(document.getElementById('vta-dev-12').value) || 0;
+            const devSoda = parseInt(document.getElementById('vta-dev-soda').value) || 0;
+            const devSoda500 = parseInt(document.getElementById('vta-dev-soda500').value) || 0;
+
+            cli.estado = document.getElementById('vta-estado-visita').value;
+            if (cli.estado === 'Pendiente' && total > 0) cli.estado = 'Entregado';
+
+            cli.totalHistorico = (cli.totalHistorico || 0) + total;
+            if (!cli.vacios) cli.vacios = { b20: 0, b12: 0, soda: 0, soda500: 0 };
+            cli.vacios.b20 = Math.max(0, (cli.vacios.b20 || 0) + (c20 - dev20));
+            cli.vacios.b12 = Math.max(0, (cli.vacios.b12 || 0) + (c12 - dev12));
+            cli.vacios.soda = Math.max(0, (cli.vacios.soda || 0) + (cSoda - devSoda));
+            cli.vacios.soda500 = Math.max(0, (cli.vacios.soda500 || 0) + (cSoda500 - devSoda500));
+
+            appState.camionEnVivo.llenos.b20 = Math.max(0, appState.camionEnVivo.llenos.b20 - c20);
+            appState.camionEnVivo.llenos.b12 = Math.max(0, appState.camionEnVivo.llenos.b12 - c12);
+            appState.camionEnVivo.llenos.soda = Math.max(0, appState.camionEnVivo.llenos.soda - cSoda);
+            if(!appState.camionEnVivo.llenos.soda500) appState.camionEnVivo.llenos.soda500 = 0;
+            appState.camionEnVivo.llenos.soda500 = Math.max(0, appState.camionEnVivo.llenos.soda500 - cSoda500);
+            appState.camionEnVivo.llenos.mesa = Math.max(0, appState.camionEnVivo.llenos.mesa - cMesa);
+
+            appState.camionEnVivo.vacios.b20 += dev20;
+            appState.camionEnVivo.vacios.b12 += dev12;
+            appState.camionEnVivo.vacios.soda += devSoda;
+            if(!appState.camionEnVivo.vacios.soda500) appState.camionEnVivo.vacios.soda500 = 0;
+            appState.camionEnVivo.vacios.soda500 += devSoda500;
+
+            if (medio === 'Efectivo') appState.finanzas.efectivo += total;
+            else appState.finanzas.transferencia += total;
+
+            appState.ventasDelDia.b20 += c20; 
+            appState.ventasDelDia.b12 += c12;
+            appState.ventasDelDia.soda += cSoda;
+            appState.ventasDelDia.soda500 = (appState.ventasDelDia.soda500 || 0) + cSoda500;
+            appState.ventasDelDia.mesa += cMesa;
+
+            appState.ventasSemana.b20 += c20; 
+            appState.ventasSemana.b12 += c12;
+            appState.ventasSemana.soda += cSoda;
+            appState.ventasSemana.soda500 = (appState.ventasSemana.soda500 || 0) + cSoda500;
+            appState.ventasSemana.mesa += cMesa;
+
+            guardarStorage();
+            actualizarStockCamionEnVivoUI();
+            renderClientesRuta();
+            actualizarFinanzasUI();
+            actualizarEnvasesClientesTotalesUI();
+            document.getElementById('ficha-cliente').classList.add('hidden');
+            mostrarModal('Venta Exitosa', 'Se registró la entrega y se descontó del camión.');
+        }
+
+        function comprimirImagen(file, callback) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const img = new Image();
+                img.onload = function() {
+                    const canvas = document.createElement('canvas');
+                    const MAX_WIDTH = 600;
+                    const MAX_HEIGHT = 600;
+                    let width = img.width;
+                    let height = img.height;
+                    if (width > height) {
+                        if (width > MAX_WIDTH) { height *= MAX_WIDTH / width; width = MAX_WIDTH; }
+                    } else {
+                        if (height > MAX_HEIGHT) { width *= MAX_HEIGHT / height; height = MAX_HEIGHT; }
+                    }
+                    canvas.width = width;
+                    canvas.height = height;
+                    const ctx = canvas.getContext('2d');
+                    ctx.drawImage(img, 0, 0, width, height);
+                    callback(canvas.toDataURL('image/jpeg', 0.7));
+                };
+                img.src = e.target.result;
+            };
+            reader.readAsDataURL(file);
+        }
+
+        function previewFotoCliente(event) {
+            const file = event.target.files[0];
+            if (file) {
+                comprimirImagen(file, function(dataUrl) {
+                    appState.tempFotoData = dataUrl;
+                    const preview = document.getElementById('alta-foto-preview');
+                    preview.src = dataUrl;
+                    preview.classList.remove('hidden');
+                });
+            }
+        }
+
+        function capturarGpsClienteEnVivo() {
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(pos => {
+                    appState.tempGpsData = { lat: pos.coords.latitude, lng: pos.coords.longitude };
+                    document.getElementById('gps-status-txt').innerText = `GPS: (${pos.coords.latitude.toFixed(4)}, ${pos.coords.longitude.toFixed(4)})`;
+                    mostrarModal('GPS Capturado', 'Coordenadas obtenidas correctamente.');
+                }, err => {
+                    mostrarModal('Error GPS', 'No se pudo obtener la ubicación.');
+                });
+            } else {
+                mostrarModal('Error', 'Geolocalización no soportada por tu navegador.');
+            }
+        }
+
+        function guardarRegistroCliente() {
+            const nombreInput = document.getElementById('alta-nombre');
+            const dirInput = document.getElementById('alta-dir');
+            
+            const nombre = nombreInput ? nombreInput.value.trim() : '';
+            const dir = dirInput ? dirInput.value.trim() : '';
+
+            if (!nombre || !dir) { 
+                mostrarModal('Atención', 'Completá al menos Nombre y Dirección.'); 
+                return; 
+            }
+
+            const editId = document.getElementById('edit-cliente-id').value;
+            const clienteTipo = document.getElementById('alta-tipo').value;
+            
+            const vac20 = parseInt(document.getElementById('alta-vac-20').value) || 0;
+            const vac12 = parseInt(document.getElementById('alta-vac-12').value) || 0;
+            const vacSoda = parseInt(document.getElementById('alta-vac-soda').value) || 0;
+            const vacSoda500 = parseInt(document.getElementById('alta-vac-soda500').value) || 0;
+
+            const nuevoCli = {
+                id: editId ? parseInt(editId) : Date.now(),
+                nombre,
+                direccion: dir,
+                tel: document.getElementById('alta-tel').value,
+                tipo: clienteTipo,
+                dia: document.getElementById('alta-dia').value,
+                zona: document.getElementById('alta-zona').value,
+                notas: document.getElementById('alta-notas').value,
+                estado: 'Pendiente',
+                activo: true,
+                foto: appState.tempFotoData || '',
+                gps: appState.tempGpsData || { lat: -31.980, lng: -68.433 },
+                vacios: { b20: vac20, b12: vac12, soda: vacSoda, soda500: vacSoda500 },
+                deuda: 0, totalHistorico: 0
+            };
+
+            if (editId) {
+                const idx = appState.clientes.findIndex(c => c.id === parseInt(editId));
+                if (idx !== -1) {
+                    nuevoCli.foto = appState.tempFotoData || appState.clientes[idx].foto;
+                    nuevoCli.gps = appState.tempGpsData || appState.clientes[idx].gps;
+                    nuevoCli.vacios = { b20: vac20, b12: vac12, soda: vacSoda, soda500: vacSoda500 };
+                    nuevoCli.activo = appState.clientes[idx].activo;
+                    appState.clientes[idx] = nuevoCli;
+                }
+            } else {
+                appState.clientes.push(nuevoCli);
+            }
+
+            guardarStorage();
+            limpiarFormCliente();
+            renderClientesRuta();
+            renderPadronClientes();
+            renderMetricasClientes();
+            actualizarEnvasesClientesTotalesUI();
+            mostrarModal('Guardado Exitoso', 'Cliente guardado correctamente.');
+            toggleSeccionCliente('padron');
+        }
+
+        function limpiarFormCliente() {
+            document.getElementById('edit-cliente-id').value = '';
+            document.getElementById('alta-nombre').value = '';
+            document.getElementById('alta-dir').value = '';
+            document.getElementById('alta-tel').value = '';
+            document.getElementById('alta-notas').value = '';
+            document.getElementById('alta-vac-20').value = '0';
+            document.getElementById('alta-vac-12').value = '0';
+            document.getElementById('alta-vac-soda').value = '0';
+            document.getElementById('alta-vac-soda500').value = '0';
+            document.getElementById('alta-foto-input').value = '';
+            document.getElementById('alta-foto-preview').classList.add('hidden');
+            document.getElementById('gps-status-txt').innerText = 'GPS: No capturado';
+            appState.tempFotoData = ''; appState.tempGpsData = null;
+        }
+
+        function renderPadronClientes() {
+            const query = document.getElementById('buscador-clientes').value.toLowerCase();
+            const cont = document.getElementById('lista-padron-clientes');
+            cont.innerHTML = '';
+            const filtrados = appState.clientes.filter(c => c.nombre.toLowerCase().includes(query) || c.direccion.toLowerCase().includes(query) || (c.tel && c.tel.includes(query)));
+
+            filtrados.forEach(c => {
+                const esActivo = c.activo !== false;
+                const estadoClase = esActivo ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800';
+                const estadoTexto = esActivo ? 'Activo' : 'Dado de Baja';
+                const v20 = c.vacios ? (c.vacios.b20 || 0) : 0;
+                const v12 = c.vacios ? (c.vacios.b12 || 0) : 0;
+                const vsoda = c.vacios ? (c.vacios.soda || 0) : 0;
+                const vsoda500 = c.vacios ? (c.vacios.soda500 || 0) : 0;
+
+                cont.innerHTML += `
+                    <div class="bg-gray-50 border p-2.5 rounded-lg flex justify-between items-center text-xs">
+                        <div>
+                            <strong>${c.nombre}</strong> <span class="text-blue-600">(${c.tipo})</span><br>
+                            <span class="text-gray-600">${c.direccion} - Día: ${c.dia}</span><br>
+                            <span class="text-yellow-700 font-semibold">Vacíos: 20L(${v20}) 12L(${v12}) Sif.1L(${vsoda}) Sif.500ml(${vsoda500})</span>
+                            <span class="ml-2 px-2 py-0.5 rounded font-bold ${estadoClase}">${estadoTexto}</span>
+                        </div>
+                        <div class="flex gap-1">
+                            <button onclick="toggleBajaCliente(${c.id})" class="${esActivo ? 'bg-yellow-600' : 'bg-green-600'} text-white px-2 py-1 rounded font-bold">${esActivo ? 'Dar Baja' : 'Reactivar'}</button>
+                            <button onclick="editarCliente(${c.id})" class="bg-blue-600 text-white px-2 py-1 rounded font-bold">Editar</button>
+                            <button onclick="eliminarCliente(${c.id})" class="bg-red-600 text-white px-2 py-1 rounded font-bold">🗑</button>
+                        </div>
+                    </div>`;
+            });
+        }
+
+        function toggleBajaCliente(id) {
+            const cli = appState.clientes.find(c => c.id === id);
+            if (cli) {
+                cli.activo = cli.activo === false ? true : false;
+                guardarStorage();
+                renderClientesRuta();
+                renderPadronClientes();
+                renderMetricasClientes();
+                actualizarEnvasesClientesTotalesUI();
+            }
+        }
+
+        function editarCliente(id) {
+            const cli = appState.clientes.find(c => c.id === id); if (!cli) return;
+            toggleSeccionCliente('form');
+            document.getElementById('edit-cliente-id').value = cli.id;
+            document.getElementById('alta-nombre').value = cli.nombre;
+            document.getElementById('alta-dir').value = cli.direccion;
+            document.getElementById('alta-tel').value = cli.tel || '';
+            document.getElementById('alta-tipo').value = cli.tipo || 'Cliente Fijo';
+            document.getElementById('alta-dia').value = cli.dia || 'Lunes';
+            document.getElementById('alta-zona').value = cli.zona || 'Villa Media Agua';
+            document.getElementById('alta-notas').value = cli.notas || '';
+            
+            document.getElementById('alta-vac-20').value = cli.vacios ? (cli.vacios.b20 || 0) : 0;
+            document.getElementById('alta-vac-12').value = cli.vacios ? (cli.vacios.b12 || 0) : 0;
+            document.getElementById('alta-vac-soda').value = cli.vacios ? (cli.vacios.soda || 0) : 0;
+            document.getElementById('alta-vac-soda500').value = cli.vacios ? (cli.vacios.soda500 || 0) : 0;
+
+            appState.tempFotoData = cli.foto || '';
+            appState.tempGpsData = cli.gps || null;
+            if (cli.foto) {
+                const prev = document.getElementById('alta-foto-preview');
+                prev.src = cli.foto; prev.classList.remove('hidden');
+            } else {
+                document.getElementById('alta-foto-preview').classList.add('hidden');
+            }
+            if (cli.gps && cli.gps.lat) {
+                document.getElementById('gps-status-txt').innerText = `GPS: (${cli.gps.lat.toFixed(4)}, ${cli.gps.lng.toFixed(4)})`;
+            }
+        }
+
+        function eliminarCliente(id) {
+            appState.clientes = appState.clientes.filter(c => c.id !== id);
+            guardarStorage(); renderClientesRuta(); renderPadronClientes(); renderMetricasClientes(); actualizarEnvasesClientesTotalesUI();
+        }
+
+        function renderMetricasClientes() {
+            const activos = appState.clientes.filter(c => c.activo !== false).length;
+            document.getElementById('met-activos').innerText = activos;
+            document.getElementById('met-inactivos').innerText = appState.clientes.length - activos;
+            document.getElementById('met-semana').innerText = appState.clientes.filter(c => c.tipo === 'Cliente Nuevo').length;
+            document.getElementById('met-mes').innerText = appState.clientes.length;
+        }
+
+        function actualizarEnvasesClientesTotalesUI() {
+            let t20 = 0, t12 = 0, tsoda = 0, tsoda500 = 0;
+            appState.clientes.forEach(c => {
+                if (c.vacios && c.activo !== false) {
+                    t20 += c.vacios.b20 || 0;
+                    t12 += c.vacios.b12 || 0;
+                    tsoda += c.vacios.soda || 0;
+                    tsoda500 += c.vacios.soda500 || 0;
+                }
+            });
+            document.getElementById('stk-cli-tot-20').innerText = t20;
+            document.getElementById('stk-cli-tot-12').innerText = t12;
+            document.getElementById('stk-cli-tot-soda').innerText = tsoda;
+            document.getElementById('stk-cli-tot-soda500').innerText = tsoda500;
+        }
+
+        function actualizarFinanzasUI() {
+            const tb = document.getElementById('tb-desglose-ventas'); tb.innerHTML = '';
+            const items = [
+                { nombre: 'Bidón 20L', cant: appState.ventasDelDia.b20, precio: appState.precios.b20, com: appState.comisiones.b20 },
+                { nombre: 'Bidón 12L', cant: appState.ventasDelDia.b12, precio: appState.precios.b12, com: appState.comisiones.b12 },
+                { nombre: 'Sifón Soda 1L', cant: appState.ventasDelDia.soda, precio: appState.precios.soda, com: appState.comisiones.soda },
+                { nombre: 'Sifón Soda 500ml', cant: appState.ventasDelDia.soda500 || 0, precio: appState.precios.soda500 || 1200, com: appState.comisiones.soda500 || 200 },
+                { nombre: 'Dispenser Mesa', cant: appState.ventasDelDia.mesa, precio: appState.precios.mesa, com: appState.comisiones.mesa }
+            ];
+
+            let comisionTotalHoy = 0;
+            items.forEach(it => {
+                const sub = it.cant * it.precio;
+                comisionTotalHoy += (it.cant * it.com);
+                tb.innerHTML += `<tr class="border-b"><td class="p-2">${it.nombre}</td><td class="p-2">${it.cant}</td><td class="p-2">$${it.precio}</td><td class="p-2 font-bold">$${sub}</td></tr>`;
+            });
+
+            const tbSem = document.getElementById('tb-desglose-semana'); tbSem.innerHTML = '';
+            const itemsSem = [
+                { nombre: 'Bidón 20L', cant: appState.ventasSemana.b20, precio: appState.precios.b20 },
+                { nombre: 'Bidón 12L', cant: appState.ventasSemana.b12, precio: appState.precios.b12 },
+                { nombre: 'Sifón Soda 1L', cant: appState.ventasSemana.soda, precio: appState.precios.soda },
+                { nombre: 'Sifón Soda 500ml', cant: appState.ventasSemana.soda500 || 0, precio: appState.precios.soda500 || 1200 },
+                { nombre: 'Dispenser Mesa', cant: appState.ventasSemana.mesa, precio: appState.precios.mesa }
+            ];
+            itemsSem.forEach(it => {
+                const subSem = it.cant * it.precio;
+                tbSem.innerHTML += `<tr class="border-b"><td class="p-2">${it.nombre}</td><td class="p-2">${it.cant}</td><td class="p-2 font-bold">$${subSem}</td></tr>`;
+            });
+
+            document.getElementById('fin-efectivo').innerText = '$' + appState.finanzas.efectivo;
+            document.getElementById('fin-transf').innerText = '$' + appState.finanzas.transferencia;
+
+            let totalGastos = 0;
+            const listaGastos = document.getElementById('historial-gastos-lista'); listaGastos.innerHTML = '';
+            appState.finanzas.gastos.forEach(g => {
+                totalGastos += g.monto;
+                listaGastos.innerHTML += `<div class="text-xs bg-red-50 p-1.5 rounded border border-red-100 flex justify-between"><span>${g.concepto}</span><span class="font-bold text-red-600">-$${g.monto}</span></div>`;
+            });
+            document.getElementById('fin-gastos').innerText = '$' + totalGastos;
+
+            document.getElementById('fin-ganancia-repartidor').innerText = '$' + comisionTotalHoy;
+            const totalRecaudadoTotal = appState.finanzas.efectivo + appState.finanzas.transferencia;
+            const totalRendir = Math.max(0, totalRecaudadoTotal - totalGastos - comisionTotalHoy);
+            document.getElementById('fin-rendir-dueno').innerText = '$' + totalRendir;
+        }
+
+        function registrarGasto() {
+            const concepto = document.getElementById('gasto-concepto').value.trim();
+            const monto = parseInt(document.getElementById('gasto-monto').value) || 0;
+            if (!concepto || monto <= 0) { mostrarModal('Atención', 'Ingresá concepto y monto.'); return; }
+            appState.finanzas.gastos.push({ concepto, monto });
+            document.getElementById('gasto-concepto').value = '';
+            document.getElementById('gasto-monto').value = '';
+            guardarStorage(); actualizarFinanzasUI();
+        }
+
+        let grabandoGPS = false; let puntosGPSActuales = [];
+        function toggleGrabacionGPS() {
+            grabandoGPS = !grabandoGPS;
+            const tag = document.getElementById('tag-grabando');
+            const btn = document.getElementById('btn-iniciar-rec');
+            if (grabandoGPS) {
+                tag.classList.remove('hidden');
+                btn.innerText = '⏹ Detener y Guardar Traza';
+                btn.className = 'bg-gray-700 text-white font-bold py-2 px-4 rounded-lg shadow';
+                puntosGPSActuales = [[-31.982, -68.433]];
+            } else {
+                tag.classList.add('hidden');
+                btn.innerText = '🔴 Iniciar Grabación GPS';
+                btn.className = 'bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 rounded-lg shadow';
+                const nombre = document.getElementById('nombre-recorrido-nuevo').value || 'Recorrido Ruta';
+                appState.recorridosGrabados.push({ id: Date.now(), nombre, puntos: puntosGPSActuales });
+                guardarStorage(); renderRecorridosGuardados();
+                document.getElementById('nombre-recorrido-nuevo').value = '';
+            }
+        }
+
+        function renderRecorridosGuardados() {
+            const cont = document.getElementById('lista-recorridos-guardados'); cont.innerHTML = '';
+            if(!appState.recorridosGrabados || appState.recorridosGrabados.length === 0) {
+                cont.innerHTML = '<p class="text-xs text-gray-500">No hay recorridos guardados.</p>'; return;
+            }
+            appState.recorridosGrabados.forEach(r => {
+                cont.innerHTML += `<div class="bg-gray-50 border p-2 rounded text-xs flex justify-between items-center"><span>📍 ${r.nombre} (${r.puntos.length} puntos)</span><button onclick="eliminarRecorrido(${r.id})" class="text-red-600 font-bold">🗑</button></div>`;
+            });
+        }
+
+        function eliminarRecorrido(id) {
+            appState.recorridosGrabados = appState.recorridosGrabados.filter(r => r.id !== id);
+            guardarStorage(); renderRecorridosGuardados();
+        }
+
+        function abrirWhatsapp() {
+            const cli = appState.clientes.find(c => c.id === appState.clienteSeleccionadoId);
+            if(cli && cli.tel) {
+                window.open(`https://wa.me/549${cli.tel}?text=Hola!%20Te%20saludamos%20de%20Chosen%20SoderApp`, '_blank');
+            } else {
+                mostrarModal('Aviso', 'El cliente no tiene teléfono registrado.');
+            }
+        }
+
+        function mostrarModal(titulo, msg) {
+            document.getElementById('modal-title').innerText = titulo;
+            document.getElementById('modal-msg').innerText = msg;
+            document.getElementById('app-modal').classList.remove('hidden');
+        }
+        function cerrarModal() { document.getElementById('app-modal').classList.add('hidden'); }
+        
+        function toggleSeccionCliente(tipo) {
+            if(tipo === 'form') {
+                document.getElementById('sec-form-cliente').classList.remove('hidden');
+                document.getElementById('sec-padron-cliente').classList.add('hidden');
+            } else {
+                document.getElementById('sec-form-cliente').classList.add('hidden');
+                document.getElementById('sec-padron-cliente').classList.remove('hidden');
+            }
+        }
+
+        window.onload = initApp;
+    </script>
+</body>
+</html>
