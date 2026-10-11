@@ -5,15 +5,34 @@
   "description": "Aplicación de gestión de reparto y clientes para SoderApp Pro",
   "start_url": "/soderapp/",
   "scope": "/soderapp/",
+  "lang": "es",
+  "dir": "ltr",
   "display": "standalone",
   "display_override": ["standalone", "minimal-ui"],
   "orientation": "portrait",
   "prefer_related_applications": false,
   "related_applications": [],
-  "iarc_rating_id": "",
   "categories": ["business", "productivity"],
   "background_color": "#ffffff",
   "theme_color": "#000000",
+  "launch_handler": {
+    "client_mode": "focus-existing"
+  },
+  "shortcuts": [
+    {
+      "name": "SoderApp Pro",
+      "short_name": "SoderApp",
+      "description": "Abrir SoderApp Pro",
+      "url": "/soderapp/",
+      "icons": [
+        {
+          "src": "icon.png",
+          "sizes": "192x192",
+          "type": "image/png"
+        }
+      ]
+    }
+  ],
   "icons": [
     {
       "src": "icon.png",
