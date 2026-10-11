@@ -1,15 +1,17 @@
 {
   "name": "SoderApp Pro",
   "short_name": "SoderApp",
+  "description": "Aplicación de gestión de reparto y clientes para SoderApp Pro",
   "start_url": "/soderapp/",
   "display": "standalone",
   "background_color": "#ffffff",
   "theme_color": "#000000",
   "icons": [
     {
-      "src": "https://via.placeholder.com/512.png",
+      "src": "icon.jpg",
       "sizes": "512x512",
-      "type": "image/png"
+      "type": "image/png",
+      "purpose": "any maskable"
     }
   ]
 }
