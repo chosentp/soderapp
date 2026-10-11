@@ -5,18 +5,25 @@
   "description": "Aplicación de gestión de reparto y clientes para SoderApp Pro",
   "start_url": "/soderapp/",
   "scope": "/soderapp/",
+  "scope_extensions": [
+    { "origin": "https://chosentp.github.io" }
+  ],
   "lang": "es",
   "dir": "ltr",
   "display": "standalone",
   "display_override": ["standalone", "minimal-ui"],
   "orientation": "portrait",
   "prefer_related_applications": false,
+  "related_applications": [],
+  "iarc_rating_id": "e0000000-0000-0000-0000-000000000000",
   "categories": ["business", "productivity"],
   "background_color": "#ffffff",
   "theme_color": "#000000",
   "launch_handler": {
     "client_mode": "focus-existing"
   },
+  "file_handlers": [],
+  "protocol_handlers": [],
   "shortcuts": [
     {
       "name": "SoderApp Pro",
