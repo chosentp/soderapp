@@ -3,7 +3,7 @@
 <head>
 <link rel="manifest" href="manifest.json">
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Chosen 👑 SoderApp v1.8.3 Satelital Pro</title>
     <!-- Tailwind CSS -->
     <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
@@ -14,11 +14,14 @@
     <style>
         .tab-content { display: none; }
         .tab-content.active { display: block; }
-        #mapa-calles-real { height: 360px; z-index: 1; border-radius: 0.5rem; cursor: crosshair; }
+        #mapa-calles-real { height: 380px; z-index: 1; border-radius: 0.5rem; cursor: crosshair; }
         .preview-img { width: 100%; max-height: 140px; object-fit: cover; border-radius: 6px; border: 1px solid #cbd5e1; }
         
-        /* Bloqueo Pull-To-Refresh */
-        body { overscroll-behavior-y: contain; }
+        /* Bloqueo Pull-To-Refresh y Scroll Elástico */
+        html, body { 
+            overscroll-behavior-y: none !important; 
+            touch-action: manipulation;
+        }
 
         /* Estilos Modo Oscuro */
         body.dark-mode {
@@ -59,7 +62,7 @@
         }
     </style>
 </head>
-<body class="bg-gray-100 font-sans pb-28 text-gray-900">
+<body class="bg-gray-100 font-sans pb-28 text-gray-900 select-none">
 
     <!-- Splash Screen con Imagen Local de Bienvenida -->
     <div id="splash-screen" class="fixed inset-0 z-50 bg-cover bg-center flex flex-col justify-end pb-12 px-6" style="background-image: url('1000638284.jpg');">
@@ -104,6 +107,21 @@
                     <button onclick="finalizarRecorridoIrAVaciado()" class="bg-red-600 hover:bg-red-700 text-white text-xs sm:text-sm font-bold py-2 px-3 rounded-lg shadow">
                         🏁 Finalizar
                     </button>
+                </div>
+            </div>
+
+            <!-- Mapeo Diario & Recomendación de Carga para el Camión (NUEVO) -->
+            <div class="bg-blue-900 text-white p-4 rounded-xl shadow-md border-2 border-blue-400">
+                <div class="flex justify-between items-center mb-2">
+                    <h3 class="text-xs sm:text-sm font-bold text-yellow-300 flex items-center gap-2">
+                        <i class="fas fa-calculator"></i> 💡 Recomendación de Carga Sugerida para hoy
+                    </h3>
+                    <button onclick="fijarUbicacionGalponGPS()" class="bg-yellow-500 hover:bg-yellow-600 text-black text-xs font-bold py-1 px-2.5 rounded shadow">
+                        📍 Fijar Galpón GPS
+                    </button>
+                </div>
+                <div id="panel-recomendacion-carga" class="text-xs space-y-1 text-gray-200">
+                    Calculando sugerencia según clientes del día...
                 </div>
             </div>
 
@@ -187,7 +205,7 @@
                         <i class="fas fa-layer-group"></i> <span id="lbl-tipo-mapa">Cambiar a Calles</span>
                     </button>
                 </div>
-                <p class="text-[11px] text-gray-500 mb-2">💡 <b>Tip:</b> Hacé <b>doble clic</b> en cualquier punto del mapa para guardar la ubicación e ir directo a agregar un cliente.</p>
+                <p class="text-[11px] text-gray-500 mb-2">💡 <b>Tip:</b> Hacé <b>doble clic</b> en el mapa para agregar o modificar la ubicación de un cliente.</p>
                 <div class="flex flex-wrap gap-2 text-xs font-semibold mb-3 bg-gray-50 p-2 rounded-lg border">
                     <span class="flex items-center gap-1"><span class="w-3 h-3 rounded-full bg-orange-500 inline-block"></span> Pendiente</span>
                     <span class="flex items-center gap-1"><span class="w-3 h-3 rounded-full bg-green-500 inline-block"></span> Entregado</span>
@@ -279,7 +297,7 @@
                         </div>
                     </div>
 
-                    <button onclick="completarVenta()" class="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-2.5 px-4 rounded-lg shadow text-xs sm:text-sm">
+                    <button onclick="completarVentaConConfirmacion()" class="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-2.5 px-4 rounded-lg shadow text-xs sm:text-sm">
                         Confirmar Venta y Entrega
                     </button>
                 </div>
@@ -403,7 +421,7 @@
                 </div>
 
                 <div class="mt-4 space-y-2">
-                    <button type="button" onclick="guardarRegistroCliente()" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2.5 px-4 rounded-lg text-xs sm:text-sm shadow">
+                    <button type="button" onclick="guardarRegistroClienteConConfirmacion()" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2.5 px-4 rounded-lg text-xs sm:text-sm shadow">
                         💾 Guardar / Actualizar Cliente
                     </button>
                     <button type="button" id="btn-cancelar-edit" onclick="limpiarFormCliente()" class="w-full bg-gray-400 hover:bg-gray-500 text-white font-bold py-2 px-4 rounded-lg text-xs hidden">
@@ -448,40 +466,45 @@
             </div>
 
             <div class="bg-white p-4 rounded-xl shadow-sm border border-gray-200">
-                <h3 class="text-sm font-bold text-gray-800 border-b pb-2 mb-3 flex items-center gap-2">
-                    <i class="fas fa-warehouse text-blue-600"></i> Control de Stock Galpón / Fábrica
-                </h3>
+                <div class="flex justify-between items-center border-b pb-2 mb-3">
+                    <h3 class="text-sm font-bold text-gray-800 flex items-center gap-2">
+                        <i class="fas fa-warehouse text-blue-600"></i> Control de Stock Galpón / Fábrica
+                    </h3>
+                    <button onclick="guardarStockGalponManualConConfirmacion()" class="bg-green-600 hover:bg-green-700 text-white text-xs px-3 py-1 rounded font-bold shadow">
+                        ✍️ Guardar Edición Stock
+                    </button>
+                </div>
                 
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs">
                     <div class="bg-green-50 p-3 rounded-xl border border-green-200">
                         <span class="font-bold text-green-800 block mb-2 border-b border-green-200 pb-1">🟢 LLENOS EN GALPÓN</span>
                         <div class="space-y-2">
-                            <div><label class="block font-semibold">Llenos 20L:</label><input type="number" id="stk-galpon-20" class="w-full p-1.5 border rounded" onchange="actualizarGalponEdicion()"></div>
-                            <div><label class="block font-semibold">Llenos 12L:</label><input type="number" id="stk-galpon-12" class="w-full p-1.5 border rounded" onchange="actualizarGalponEdicion()"></div>
-                            <div><label class="block font-semibold">Llenos Soda 1L:</label><input type="number" id="stk-galpon-soda" class="w-full p-1.5 border rounded" onchange="actualizarGalponEdicion()"></div>
-                            <div><label class="block font-semibold">Llenos Soda 500ml:</label><input type="number" id="stk-galpon-soda500" class="w-full p-1.5 border rounded" onchange="actualizarGalponEdicion()"></div>
-                            <div><label class="block font-semibold">Disp. Eléctricos (F/C):</label><input type="number" id="stk-galpon-fc" class="w-full p-1.5 border rounded" onchange="actualizarGalponEdicion()"></div>
-                            <div><label class="block font-semibold">Disp. de Mesa:</label><input type="number" id="stk-galpon-mesa" class="w-full p-1.5 border rounded" onchange="actualizarGalponEdicion()"></div>
+                            <div><label class="block font-semibold">Llenos 20L:</label><input type="number" id="stk-galpon-20" class="w-full p-1.5 border rounded"></div>
+                            <div><label class="block font-semibold">Llenos 12L:</label><input type="number" id="stk-galpon-12" class="w-full p-1.5 border rounded"></div>
+                            <div><label class="block font-semibold">Llenos Soda 1L:</label><input type="number" id="stk-galpon-soda" class="w-full p-1.5 border rounded"></div>
+                            <div><label class="block font-semibold">Llenos Soda 500ml:</label><input type="number" id="stk-galpon-soda500" class="w-full p-1.5 border rounded"></div>
+                            <div><label class="block font-semibold">Disp. Eléctricos (F/C):</label><input type="number" id="stk-galpon-fc" class="w-full p-1.5 border rounded"></div>
+                            <div><label class="block font-semibold">Disp. de Mesa:</label><input type="number" id="stk-galpon-mesa" class="w-full p-1.5 border rounded"></div>
                         </div>
                     </div>
 
                     <div class="bg-blue-50 p-3 rounded-xl border border-blue-200">
                         <span class="font-bold text-blue-800 block mb-2 border-b border-blue-200 pb-1">💧 VACÍOS EN FÁBRICA</span>
                         <div class="space-y-2">
-                            <div><label class="block font-semibold">Vacíos 20L:</label><input type="number" id="stk-fabrica-20" class="w-full p-1.5 border rounded" onchange="actualizarGalponEdicion()"></div>
-                            <div><label class="block font-semibold">Vacíos 12L:</label><input type="number" id="stk-fabrica-12" class="w-full p-1.5 border rounded" onchange="actualizarGalponEdicion()"></div>
-                            <div><label class="block font-semibold">Soda Vacía 1L:</label><input type="number" id="stk-fabrica-soda" class="w-full p-1.5 border rounded" onchange="actualizarGalponEdicion()"></div>
-                            <div><label class="block font-semibold">Soda Vacía 500ml:</label><input type="number" id="stk-fabrica-soda500" class="w-full p-1.5 border rounded" onchange="actualizarGalponEdicion()"></div>
+                            <div><label class="block font-semibold">Vacíos 20L:</label><input type="number" id="stk-fabrica-20" class="w-full p-1.5 border rounded"></div>
+                            <div><label class="block font-semibold">Vacíos 12L:</label><input type="number" id="stk-fabrica-12" class="w-full p-1.5 border rounded"></div>
+                            <div><label class="block font-semibold">Soda Vacía 1L:</label><input type="number" id="stk-fabrica-soda" class="w-full p-1.5 border rounded"></div>
+                            <div><label class="block font-semibold">Soda Vacía 500ml:</label><input type="number" id="stk-fabrica-soda500" class="w-full p-1.5 border rounded"></div>
                         </div>
                     </div>
 
                     <div class="bg-red-50 p-3 rounded-xl border border-red-200">
                         <span class="font-bold text-red-800 block mb-2 border-b border-red-200 pb-1">⚠️ ROTOS / PINCHADOS</span>
                         <div class="space-y-2">
-                            <div><label class="block font-semibold">Rotos 20L:</label><input type="number" id="stk-rotos-20" class="w-full p-1.5 border rounded" onchange="actualizarGalponEdicion()"></div>
-                            <div><label class="block font-semibold">Rotos 12L:</label><input type="number" id="stk-rotos-12" class="w-full p-1.5 border rounded" onchange="actualizarGalponEdicion()"></div>
-                            <div><label class="block font-semibold">Soda Rota 1L:</label><input type="number" id="stk-rotos-soda" class="w-full p-1.5 border rounded" onchange="actualizarGalponEdicion()"></div>
-                            <div><label class="block font-semibold">Soda Rota 500ml:</label><input type="number" id="stk-rotos-soda500" class="w-full p-1.5 border rounded" onchange="actualizarGalponEdicion()"></div>
+                            <div><label class="block font-semibold">Rotos 20L:</label><input type="number" id="stk-rotos-20" class="w-full p-1.5 border rounded"></div>
+                            <div><label class="block font-semibold">Rotos 12L:</label><input type="number" id="stk-rotos-12" class="w-full p-1.5 border rounded"></div>
+                            <div><label class="block font-semibold">Soda Rota 1L:</label><input type="number" id="stk-rotos-soda" class="w-full p-1.5 border rounded"></div>
+                            <div><label class="block font-semibold">Soda Rota 500ml:</label><input type="number" id="stk-rotos-soda500" class="w-full p-1.5 border rounded"></div>
                         </div>
                     </div>
                 </div>
@@ -501,7 +524,7 @@
                         <div><label class="block">Soda 500ml:</label><input type="number" id="carga-camion-soda500" value="0" class="w-full p-1 border rounded"></div>
                         <div><label class="block">Disp. Mesa:</label><input type="number" id="carga-camion-mesa" value="0" class="w-full p-1 border rounded"></div>
                     </div>
-                    <button onclick="cargarStockACamion()" class="mt-3 w-full bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-3 rounded-lg text-xs shadow">
+                    <button onclick="cargarStockACamionConConfirmacion()" class="mt-3 w-full bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-3 rounded-lg text-xs shadow">
                         🚚 Confirmar Carga de Salida
                     </button>
                 </div>
@@ -530,7 +553,7 @@
                         <div><label class="block text-red-700">Soda Rota 500ml:</label><input type="number" id="pinch-soda500" value="0" class="w-full p-1 border rounded bg-red-50"></div>
                     </div>
 
-                    <button onclick="procesarVaciadoRetorno()" class="mt-3 w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-3 rounded-lg text-xs shadow">
+                    <button onclick="procesarVaciadoRetornoConConfirmacion()" class="mt-3 w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-3 rounded-lg text-xs shadow">
                         📦 Procesar Vaciado y Devolución al Galpón
                     </button>
                 </div>
@@ -549,30 +572,30 @@
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs sm:text-sm">
                     <div>
                         <label class="block font-bold text-gray-700 mb-1">Precio Bidón 20L ($):</label>
-                        <input type="number" id="prc-b20" class="w-full p-2 border rounded-lg" onchange="guardarPrecios()">
+                        <input type="number" id="prc-b20" class="w-full p-2 border rounded-lg">
                     </div>
                     <div>
                         <label class="block font-bold text-gray-700 mb-1">Precio Bidón 12L ($):</label>
-                        <input type="number" id="prc-b12" class="w-full p-2 border rounded-lg" onchange="guardarPrecios()">
+                        <input type="number" id="prc-b12" class="w-full p-2 border rounded-lg">
                     </div>
                     <div>
                         <label class="block font-bold text-gray-700 mb-1">Precio Soda 1L ($):</label>
-                        <input type="number" id="prc-soda" class="w-full p-2 border rounded-lg" onchange="guardarPrecios()">
+                        <input type="number" id="prc-soda" class="w-full p-2 border rounded-lg">
                     </div>
                     <div>
                         <label class="block font-bold text-gray-700 mb-1">Precio Soda 500ml ($):</label>
-                        <input type="number" id="prc-soda500" class="w-full p-2 border rounded-lg" onchange="guardarPrecios()">
+                        <input type="number" id="prc-soda500" class="w-full p-2 border rounded-lg">
                     </div>
                     <div>
                         <label class="block font-bold text-gray-700 mb-1">Alquiler Dispenser F/C ($):</label>
-                        <input type="number" id="prc-fc" class="w-full p-2 border rounded-lg" onchange="guardarPrecios()">
+                        <input type="number" id="prc-fc" class="w-full p-2 border rounded-lg">
                     </div>
                     <div>
                         <label class="block font-bold text-gray-700 mb-1">Venta Dispenser Mesa ($):</label>
-                        <input type="number" id="prc-mesa" class="w-full p-2 border rounded-lg" onchange="guardarPrecios()">
+                        <input type="number" id="prc-mesa" class="w-full p-2 border rounded-lg">
                     </div>
                 </div>
-                <button onclick="guardarPrecios(true)" class="mt-4 w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2.5 px-4 rounded-lg text-xs sm:text-sm shadow">
+                <button onclick="guardarPreciosConConfirmacion()" class="mt-4 w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2.5 px-4 rounded-lg text-xs sm:text-sm shadow">
                     💾 Guardar Tarifas
                 </button>
             </div>
@@ -598,7 +621,12 @@
             </div>
 
             <div class="bg-white p-4 rounded-xl shadow-sm border border-gray-200">
-                <h3 class="text-sm font-bold text-blue-900 mb-3"><i class="fas fa-calendar-week text-indigo-600"></i> Resumen de Ventas de la Semana</h3>
+                <div class="flex justify-between items-center mb-3">
+                    <h3 class="text-sm font-bold text-blue-900"><i class="fas fa-calendar-week text-indigo-600"></i> Resumen de Ventas de la Semana</h3>
+                    <button onclick="finalizarSemanaCajaConConfirmacion()" class="bg-red-600 hover:bg-red-700 text-white font-bold text-xs py-1.5 px-3 rounded shadow">
+                        🏁 Finalizar y Cerrar Semana
+                    </button>
+                </div>
                 <div class="overflow-x-auto">
                     <table class="w-full text-xs text-center border-collapse">
                         <thead>
@@ -616,12 +644,15 @@
             <div class="bg-yellow-50 p-4 rounded-xl border border-yellow-300 shadow-sm">
                 <h3 class="text-sm font-bold text-yellow-800 mb-3"><i class="fas fa-coins text-yellow-600"></i> Configuración de Comisiones (Tu Ganancia)</h3>
                 <div class="grid grid-cols-2 sm:grid-cols-5 gap-2 text-xs">
-                    <div><label class="block font-semibold">Com. 20L ($):</label><input type="number" id="com-20" class="w-full p-1.5 border rounded bg-white" onchange="guardarComisiones()"></div>
-                    <div><label class="block font-semibold">Com. 12L ($):</label><input type="number" id="com-12" class="w-full p-1.5 border rounded bg-white" onchange="guardarComisiones()"></div>
-                    <div><label class="block font-semibold">Com. Soda ($):</label><input type="number" id="com-soda" class="w-full p-1.5 border rounded bg-white" onchange="guardarComisiones()"></div>
-                    <div><label class="block font-semibold">Com. Soda 500 ($):</label><input type="number" id="com-soda500" class="w-full p-1.5 border rounded bg-white" onchange="guardarComisiones()"></div>
-                    <div><label class="block font-semibold">Com. Mesa ($):</label><input type="number" id="com-mesa" class="w-full p-1.5 border rounded bg-white" onchange="guardarComisiones()"></div>
+                    <div><label class="block font-semibold">Com. 20L ($):</label><input type="number" id="com-20" class="w-full p-1.5 border rounded bg-white"></div>
+                    <div><label class="block font-semibold">Com. 12L ($):</label><input type="number" id="com-12" class="w-full p-1.5 border rounded bg-white"></div>
+                    <div><label class="block font-semibold">Com. Soda ($):</label><input type="number" id="com-soda" class="w-full p-1.5 border rounded bg-white"></div>
+                    <div><label class="block font-semibold">Com. Soda 500 ($):</label><input type="number" id="com-soda500" class="w-full p-1.5 border rounded bg-white"></div>
+                    <div><label class="block font-semibold">Com. Mesa ($):</label><input type="number" id="com-mesa" class="w-full p-1.5 border rounded bg-white"></div>
                 </div>
+                <button onclick="guardarComisionesConConfirmacion()" class="mt-3 w-full bg-yellow-600 hover:bg-yellow-700 text-white font-bold py-2 px-3 rounded text-xs shadow">
+                    Guardar Comisiones
+                </button>
             </div>
 
             <div class="grid grid-cols-3 gap-2 text-center text-xs">
@@ -660,6 +691,11 @@
                     💸 Registrar Gasto
                 </button>
                 <div id="historial-gastos-lista" class="mt-3 space-y-1"></div>
+            </div>
+
+            <div class="bg-white p-4 rounded-xl shadow-sm border border-gray-200">
+                <h3 class="text-sm font-bold text-gray-800 mb-2"><i class="fas fa-history text-indigo-600"></i> Historial de Cierres Semanales</h3>
+                <div id="historial-cierres-semanales" class="text-xs space-y-1 text-gray-600">No hay cierres semanales aún.</div>
             </div>
         </div>
 
@@ -742,7 +778,7 @@
 
     </main>
 
-    <!-- Barra de Navegación Inferior (Sin Ajustes Duplicado) -->
+    <!-- Barra de Navegación Inferior -->
     <nav class="bg-white border-t border-gray-200 fixed bottom-0 left-0 right-0 shadow-lg flex justify-around p-2 z-40 text-xs">
         <button onclick="switchTab('recorrido')" class="nav-btn flex flex-col items-center text-blue-700 font-bold" id="nav-recorrido">
             <i class="fas fa-route text-lg"></i><span>Ruta</span>
@@ -764,19 +800,21 @@
         </button>
     </nav>
 
-    <!-- MODAL ALERTA -->
+    <!-- MODAL ALERTA DE CONFIRMACIÓN -->
     <div id="app-modal" class="fixed inset-0 bg-black bg-opacity-50 hidden flex items-center justify-center z-50 p-4">
         <div class="bg-white p-5 rounded-2xl max-w-sm w-full space-y-3 text-center shadow-xl">
             <h3 id="modal-title" class="text-base font-bold text-gray-800">Alerta</h3>
             <p id="modal-msg" class="text-xs text-gray-600"></p>
-            <button onclick="cerrarModal()" class="w-full bg-blue-600 text-white font-bold py-2 rounded-lg text-xs shadow">Aceptar</button>
+            <div id="modal-buttons" class="flex gap-2">
+                <button onclick="cerrarModal()" class="w-full bg-blue-600 text-white font-bold py-2 rounded-lg text-xs shadow">Aceptar</button>
+            </div>
         </div>
     </div>
 
     <!-- Leaflet JS -->
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
-    <!-- LÓGICA JS COMPLETA -->
+    <!-- LÓGICA JS COMPLETA Y REFORZADA -->
     <script>
         let appState = {
             precios: { b20: 3000, b12: 2200, soda: 1800, soda500: 1200, fc: 8000, mesa: 15000 },
@@ -789,6 +827,8 @@
                 fc: { llenos: 10, fabrica: 2 },
                 mesa: { llenos: 5 }
             },
+            galponGps: { lat: -31.982, lng: -68.433 },
+            mapState: { lat: -31.982, lng: -68.433, zoom: 16 },
             camionEnVivo: {
                 llenos: { b20: 0, b12: 0, soda: 0, soda500: 0, mesa: 0 },
                 vacios: { b20: 0, b12: 0, soda: 0, soda500: 0 }
@@ -796,6 +836,7 @@
             ventasDelDia: { b20: 0, b12: 0, soda: 0, soda500: 0, mesa: 0 },
             ventasSemana: { b20: 0, b12: 0, soda: 0, soda500: 0, mesa: 0 },
             finanzas: { efectivo: 0, transferencia: 0, gastos: [] },
+            historialCierresSemanales: [],
             estadoRuta: "Detenido",
             clienteSeleccionadoId: null,
             tempFotoData: "", tempGpsData: null,
@@ -834,11 +875,13 @@
             renderRecorridosGuardados();
             actualizarEstadoRutaUI();
             actualizarEnvasesClientesTotalesUI();
+            calcularRecomendacionCarga();
+            cargarHistorialCierresSemanalesUI();
         }
 
         function initMapaLeaflet() {
-            // Zoom inicial aumentado a 16 para ver bien de cerca casas y calles
-            mapLeaflet = L.map('mapa-calles-real').setView([-31.982, -68.433], 16);
+            const ms = appState.mapState || { lat: -31.982, lng: -68.433, zoom: 16 };
+            mapLeaflet = L.map('mapa-calles-real').setView([ms.lat, ms.lng], ms.zoom);
             
             layerSatelite = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
                 maxZoom: 19, attribution: '© Esri'
@@ -859,19 +902,68 @@
                 document.getElementById('lbl-tipo-mapa').innerText = 'Cambiar a Calles';
             }
 
-            // DOBLE CLIC EN EL MAPA PARA REGISTRAR / MARCAR CLIENTE
+            // GUARDA MEMORIA EXACTA DE ZOOM Y POSICIÓN AL MOVER EL MAPA
+            mapLeaflet.on('moveend', function() {
+                const center = mapLeaflet.getCenter();
+                appState.mapState = { lat: center.lat, lng: center.lng, zoom: mapLeaflet.getZoom() };
+                guardarStorage();
+            });
+
+            // DOBLE CLIC INTELIGENTE EN MAPA: MODIFICAR O AGREGAR CLIENTE
             mapLeaflet.on('dblclick', function(e) {
                 const lat = e.latlng.lat;
                 const lng = e.latlng.lng;
-                appState.tempGpsData = { lat, lng };
                 
-                switchTab('clientes');
-                toggleSeccionCliente('form');
-                limpiarFormCliente();
-                appState.tempGpsData = { lat, lng };
-                document.getElementById('gps-status-txt').innerText = `GPS Marcado: (${lat.toFixed(5)}, ${lng.toFixed(5)})`;
-                mostrarModal('Ubicación Marcada', 'Se guardaron las coordenadas. Completá los datos del nuevo cliente.');
+                if (confirm("¿Desea agregar un NUEVO CLIENTE en esta posición GPS?\n(Pulse Cancelar si prefiere reasignar la ubicación a un cliente existente)")) {
+                    appState.tempGpsData = { lat, lng };
+                    switchTab('clientes');
+                    toggleSeccionCliente('form');
+                    limpiarFormCliente();
+                    appState.tempGpsData = { lat, lng };
+                    document.getElementById('gps-status-txt').innerText = `GPS Marcado: (${lat.toFixed(5)}, ${lng.toFixed(5)})`;
+                } else {
+                    const idCli = prompt("Ingrese el ID o Nombre exacto del cliente al que quiere reasignar este punto GPS:");
+                    if(idCli) {
+                        const cliFound = appState.clientes.find(c => c.id == idCli || c.nombre.toLowerCase().includes(idCli.toLowerCase()));
+                        if(cliFound) {
+                            cliFound.gps = { lat, lng };
+                            guardarStorage();
+                            renderClientesRuta();
+                            alert(`¡Ubicación GPS actualizada para ${cliFound.nombre}!`);
+                        } else {
+                            alert("No se encontró ningún cliente con ese nombre o ID.");
+                        }
+                    }
+                }
             });
+        }
+
+        function fijarUbicacionGalponGPS() {
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(pos => {
+                    appState.galponGps = { lat: pos.coords.latitude, lng: pos.coords.longitude };
+                    guardarStorage();
+                    renderClientesRuta();
+                    mostrarModal('Galpón Guardado', 'Se fijó la ubicación de salida del depósito/galpón.');
+                }, () => mostrarModal('GPS Error', 'No se pudo capturar el GPS para el galpón.'));
+            }
+        }
+
+        function calcularRecomendacionCarga() {
+            const diaSel = document.getElementById('sel-dia-trabajo') ? document.getElementById('sel-dia-trabajo').value : 'Lunes';
+            const clientesDia = appState.clientes.filter(c => c.dia === diaSel && c.activo !== false);
+            
+            let b20Sugeridos = clientesDia.length * 2;
+            let b12Sugeridos = Math.ceil(clientesDia.length * 0.5);
+            let sodaSugerida = clientesDia.length * 3;
+
+            const panel = document.getElementById('panel-recomendacion-carga');
+            if(panel) {
+                panel.innerHTML = `
+                    <p>📅 <b>Clientes programados para ${diaSel}:</b> ${clientesDia.length}</p>
+                    <p>📦 <b>Sugerencia de carga:</b> <b>${b20Sugeridos}</b> Bidones 20L | <b>${b12Sugeridos}</b> Bidones 12L | <b>${sodaSugerida}</b> Sifones Soda 1L</p>
+                `;
+            }
         }
 
         function toggleModoMapa() {
@@ -981,21 +1073,23 @@
         }
 
         function finalizarRecorridoIrAVaciado() {
-            cambiarEstadoRuta('Finalizado');
-            switchTab('stock');
-            
-            document.getElementById('vac-dev-lleno-20').value = appState.camionEnVivo.llenos.b20;
-            document.getElementById('vac-dev-lleno-12').value = appState.camionEnVivo.llenos.b12;
-            document.getElementById('vac-dev-lleno-soda').value = appState.camionEnVivo.llenos.soda;
-            document.getElementById('vac-dev-lleno-soda500').value = appState.camionEnVivo.llenos.soda500 || 0;
-            document.getElementById('vac-dev-lleno-mesa').value = appState.camionEnVivo.llenos.mesa;
+            if(confirm("¿Desea finalizar el recorrido actual e ir a la pantalla de vaciado del camión?")) {
+                cambiarEstadoRuta('Finalizado');
+                switchTab('stock');
+                
+                document.getElementById('vac-dev-lleno-20').value = appState.camionEnVivo.llenos.b20;
+                document.getElementById('vac-dev-lleno-12').value = appState.camionEnVivo.llenos.b12;
+                document.getElementById('vac-dev-lleno-soda').value = appState.camionEnVivo.llenos.soda;
+                document.getElementById('vac-dev-lleno-soda500').value = appState.camionEnVivo.llenos.soda500 || 0;
+                document.getElementById('vac-dev-lleno-mesa').value = appState.camionEnVivo.llenos.mesa;
 
-            document.getElementById('vac-ing-vac-20').value = appState.camionEnVivo.vacios.b20;
-            document.getElementById('vac-ing-vac-12').value = appState.camionEnVivo.vacios.b12;
-            document.getElementById('vac-ing-vac-soda').value = appState.camionEnVivo.vacios.soda;
-            document.getElementById('vac-ing-vac-soda500').value = appState.camionEnVivo.vacios.soda500 || 0;
+                document.getElementById('vac-ing-vac-20').value = appState.camionEnVivo.vacios.b20;
+                document.getElementById('vac-ing-vac-12').value = appState.camionEnVivo.vacios.b12;
+                document.getElementById('vac-ing-vac-soda').value = appState.camionEnVivo.vacios.soda;
+                document.getElementById('vac-ing-vac-soda500').value = appState.camionEnVivo.vacios.soda500 || 0;
 
-            mostrarModal('Recorrido Finalizado', 'Revisá los datos en la pantalla de Vaciado y Devolución.');
+                mostrarModal('Recorrido Finalizado', 'Revisá los datos en la pantalla de Vaciado y Devolución.');
+            }
         }
 
         function cargarInputsPrecios() {
@@ -1007,15 +1101,18 @@
             document.getElementById('prc-mesa').value = appState.precios.mesa;
         }
 
-        function guardarPrecios(notificar = false) {
-            appState.precios.b20 = parseInt(document.getElementById('prc-b20').value) || 0;
-            appState.precios.b12 = parseInt(document.getElementById('prc-b12').value) || 0;
-            appState.precios.soda = parseInt(document.getElementById('prc-soda').value) || 0;
-            appState.precios.soda500 = parseInt(document.getElementById('prc-soda500').value) || 0;
-            appState.precios.fc = parseInt(document.getElementById('prc-fc').value) || 0;
-            appState.precios.mesa = parseInt(document.getElementById('prc-mesa').value) || 0;
-            guardarStorage(); actualizarFinanzasUI();
-            if (notificar) mostrarModal('Precios Guardados', 'Las tarifas se actualizaron correctamente.');
+        function guardarPreciosConConfirmacion() {
+            if(confirm("¿Desea guardar y actualizar la tabla general de precios y tarifas?")) {
+                appState.precios.b20 = parseInt(document.getElementById('prc-b20').value) || 0;
+                appState.precios.b12 = parseInt(document.getElementById('prc-b12').value) || 0;
+                appState.precios.soda = parseInt(document.getElementById('prc-soda').value) || 0;
+                appState.precios.soda500 = parseInt(document.getElementById('prc-soda500').value) || 0;
+                appState.precios.fc = parseInt(document.getElementById('prc-fc').value) || 0;
+                appState.precios.mesa = parseInt(document.getElementById('prc-mesa').value) || 0;
+                guardarStorage(); 
+                actualizarFinanzasUI();
+                mostrarModal('Precios Guardados', 'Las tarifas se actualizaron correctamente.');
+            }
         }
 
         function cargarInputsComisiones() {
@@ -1026,13 +1123,17 @@
             document.getElementById('com-mesa').value = appState.comisiones.mesa;
         }
 
-        function guardarComisiones() {
-            appState.comisiones.b20 = parseInt(document.getElementById('com-20').value) || 0;
-            appState.comisiones.b12 = parseInt(document.getElementById('com-12').value) || 0;
-            appState.comisiones.soda = parseInt(document.getElementById('com-soda').value) || 0;
-            appState.comisiones.soda500 = parseInt(document.getElementById('com-soda500').value) || 0;
-            appState.comisiones.mesa = parseInt(document.getElementById('com-mesa').value) || 0;
-            guardarStorage(); actualizarFinanzasUI();
+        function guardarComisionesConConfirmacion() {
+            if(confirm("¿Desea confirmar el cambio en los porcentajes/montos de comisiones?")) {
+                appState.comisiones.b20 = parseInt(document.getElementById('com-20').value) || 0;
+                appState.comisiones.b12 = parseInt(document.getElementById('com-12').value) || 0;
+                appState.comisiones.soda = parseInt(document.getElementById('com-soda').value) || 0;
+                appState.comisiones.soda500 = parseInt(document.getElementById('com-soda500').value) || 0;
+                appState.comisiones.mesa = parseInt(document.getElementById('com-mesa').value) || 0;
+                guardarStorage(); 
+                actualizarFinanzasUI();
+                mostrarModal('Comisiones Guardadas', 'Se actualizaron tus comisiones de ganancia.');
+            }
         }
 
         function cargarInputsStockGalpon() {
@@ -1054,29 +1155,34 @@
             document.getElementById('stk-rotos-soda500').value = appState.galpon.soda500 ? (appState.galpon.soda500.rotos || 0) : 0;
         }
 
-        function actualizarGalponEdicion() {
-            appState.galpon.b20.llenos = parseInt(document.getElementById('stk-galpon-20').value) || 0;
-            appState.galpon.b12.llenos = parseInt(document.getElementById('stk-galpon-12').value) || 0;
-            appState.galpon.soda.llenos = parseInt(document.getElementById('stk-galpon-soda').value) || 0;
-            if(!appState.galpon.soda500) appState.galpon.soda500 = { llenos:0, fabrica:0, rotos:0 };
-            appState.galpon.soda500.llenos = parseInt(document.getElementById('stk-galpon-soda500').value) || 0;
-            appState.galpon.fc.llenos = parseInt(document.getElementById('stk-galpon-fc').value) || 0;
-            appState.galpon.mesa.llenos = parseInt(document.getElementById('stk-galpon-mesa').value) || 0;
+        function guardarStockGalponManualConConfirmacion() {
+            if(confirm("¿Desea confirmar los cambios manuales en el inventario del Galpón?")) {
+                appState.galpon.b20.llenos = parseInt(document.getElementById('stk-galpon-20').value) || 0;
+                appState.galpon.b12.llenos = parseInt(document.getElementById('stk-galpon-12').value) || 0;
+                appState.galpon.soda.llenos = parseInt(document.getElementById('stk-galpon-soda').value) || 0;
+                if(!appState.galpon.soda500) appState.galpon.soda500 = { llenos:0, fabrica:0, rotos:0 };
+                appState.galpon.soda500.llenos = parseInt(document.getElementById('stk-galpon-soda500').value) || 0;
+                appState.galpon.fc.llenos = parseInt(document.getElementById('stk-galpon-fc').value) || 0;
+                appState.galpon.mesa.llenos = parseInt(document.getElementById('stk-galpon-mesa').value) || 0;
 
-            appState.galpon.b20.fabrica = parseInt(document.getElementById('stk-fabrica-20').value) || 0;
-            appState.galpon.b12.fabrica = parseInt(document.getElementById('stk-fabrica-12').value) || 0;
-            appState.galpon.soda.fabrica = parseInt(document.getElementById('stk-fabrica-soda').value) || 0;
-            appState.galpon.soda500.fabrica = parseInt(document.getElementById('stk-fabrica-soda500').value) || 0;
+                appState.galpon.b20.fabrica = parseInt(document.getElementById('stk-fabrica-20').value) || 0;
+                appState.galpon.b12.fabrica = parseInt(document.getElementById('stk-fabrica-12').value) || 0;
+                appState.galpon.soda.fabrica = parseInt(document.getElementById('stk-fabrica-soda').value) || 0;
+                appState.galpon.soda500.fabrica = parseInt(document.getElementById('stk-fabrica-soda500').value) || 0;
 
-            appState.galpon.b20.rotos = parseInt(document.getElementById('stk-rotos-20').value) || 0;
-            appState.galpon.b12.rotos = parseInt(document.getElementById('stk-rotos-12').value) || 0;
-            appState.galpon.soda.rotos = parseInt(document.getElementById('stk-rotos-soda').value) || 0;
-            appState.galpon.soda500.rotos = parseInt(document.getElementById('stk-rotos-soda500').value) || 0;
+                appState.galpon.b20.rotos = parseInt(document.getElementById('stk-rotos-20').value) || 0;
+                appState.galpon.b12.rotos = parseInt(document.getElementById('stk-rotos-12').value) || 0;
+                appState.galpon.soda.rotos = parseInt(document.getElementById('stk-rotos-soda').value) || 0;
+                appState.galpon.soda500.rotos = parseInt(document.getElementById('stk-rotos-soda500').value) || 0;
 
-            guardarStorage();
+                guardarStorage();
+                mostrarModal('Stock Actualizado', 'Se actualizaron los valores en el sistema.');
+            }
         }
 
-        function cargarStockACamion() {
+        function cargarStockACamionConConfirmacion() {
+            if(!confirm("¿Confirmar la carga de salida seleccionada hacia el camión?")) return;
+
             const c20 = parseInt(document.getElementById('carga-camion-20').value) || 0;
             const c12 = parseInt(document.getElementById('carga-camion-12').value) || 0;
             const cSoda = parseInt(document.getElementById('carga-camion-soda').value) || 0;
@@ -1131,7 +1237,9 @@
             document.getElementById('vivo-vac-soda500').innerText = appState.camionEnVivo.vacios.soda500 || 0;
         }
 
-        function procesarVaciadoRetorno() {
+        function procesarVaciadoRetornoConConfirmacion() {
+            if(!confirm("¿Desea confirmar el vaciado del camión y reingreso de envases al Galpón?")) return;
+
             const devLleno20 = parseInt(document.getElementById('vac-dev-lleno-20').value) || 0;
             const devLleno12 = parseInt(document.getElementById('vac-dev-lleno-12').value) || 0;
             const devLlenoSoda = parseInt(document.getElementById('vac-dev-lleno-soda').value) || 0;
@@ -1193,8 +1301,10 @@
         }
 
         function eliminarHistorialCarga(id) {
-            appState.historialCargas = appState.historialCargas.filter(h => h.id !== id);
-            guardarStorage(); renderHistorialCargas();
+            if(confirm("¿Desea borrar este registro de carga?")) {
+                appState.historialCargas = appState.historialCargas.filter(h => h.id !== id);
+                guardarStorage(); renderHistorialCargas();
+            }
         }
 
         function renderClientesRuta() {
@@ -1206,11 +1316,24 @@
             mapMarkers.forEach(m => mapLeaflet.removeLayer(m));
             mapMarkers = [];
 
+            // AGREGAR ICONO DE GALPÓN SI TIENE GPS
+            if(appState.galponGps && appState.galponGps.lat) {
+                const iconG = L.divIcon({
+                    className: 'galpon-icon',
+                    html: `<div style="background-color:#1e293b; width:30px; height:30px; border-radius:50%; color:white; font-weight:bold; display:flex; align-items:center; justify-content:center; border:2px solid #eab308; box-shadow:0 2px 4px rgba(0,0,0,0.5); font-size:1rem;">🏭</div>`,
+                    iconSize: [30, 30]
+                });
+                const mG = L.marker([appState.galponGps.lat, appState.galponGps.lng], { icon: iconG }).addTo(mapLeaflet).bindPopup("<b>Depósito / Galpón de Salida</b>");
+                mapMarkers.push(mG);
+            }
+
             const filtrados = appState.clientes.filter(c => (zonaSel === "Todas" || c.zona === zonaSel) && c.dia === diaSel && c.activo !== false);
             document.getElementById('cant-ruta').innerText = filtrados.length;
 
             const colores = { Pendiente: '#f97316', Entregado: '#22c55e', NoEstaba: '#ef4444', Volver: '#eab308', NoDejo: '#94a3b8', 'Posible Cliente': '#3b82f6', 'Cliente Nuevo': '#9333ea' };
             const bounds = [];
+
+            if(appState.galponGps && appState.galponGps.lat) bounds.push([appState.galponGps.lat, appState.galponGps.lng]);
 
             filtrados.forEach((c, idx) => {
                 const est = c.estado || 'Pendiente';
@@ -1247,9 +1370,11 @@
                 }
             });
 
-            if (bounds.length > 0) {
+            if (bounds.length > 0 && (!appState.mapState || !appState.mapState.lat)) {
                 mapLeaflet.fitBounds(bounds, { padding: [30, 30] });
             }
+
+            calcularRecomendacionCarga();
         }
 
         function abrirFichaCliente(id) {
@@ -1292,7 +1417,9 @@
             document.getElementById('vta-pago').value = total;
         }
 
-        function completarVenta() {
+        function completarVentaConConfirmacion() {
+            if(!confirm("¿Desea registrar esta venta y entrega de envases?")) return;
+
             const cli = appState.clientes.find(c => c.id === appState.clienteSeleccionadoId);
             if (!cli) return;
             const total = parseInt(document.getElementById('vta-total').value) || 0;
@@ -1408,7 +1535,7 @@
             }
         }
 
-        function guardarRegistroCliente() {
+        function guardarRegistroClienteConConfirmacion() {
             const nombreInput = document.getElementById('alta-nombre');
             const dirInput = document.getElementById('alta-dir');
             
@@ -1419,6 +1546,8 @@
                 mostrarModal('Atención', 'Completá al menos Nombre y Dirección.'); 
                 return; 
             }
+
+            if(!confirm(`¿Desea guardar o actualizar los datos del cliente "${nombre}"?`)) return;
 
             const editId = document.getElementById('edit-cliente-id').value;
             const clienteTipo = document.getElementById('alta-tipo').value;
@@ -1440,7 +1569,7 @@
                 estado: 'Pendiente',
                 activo: true,
                 foto: appState.tempFotoData || '',
-                gps: appState.tempGpsData || { lat: -31.980, lng: -68.433 },
+                gps: appState.tempGpsData || appState.mapState || { lat: -31.980, lng: -68.433 },
                 vacios: { b20: vac20, b12: vac12, soda: vacSoda, soda500: vacSoda500 },
                 deuda: 0, totalHistorico: 0
             };
@@ -1510,7 +1639,7 @@
                         <div class="flex gap-1">
                             <button onclick="toggleBajaCliente(${c.id})" class="${esActivo ? 'bg-yellow-600' : 'bg-green-600'} text-white px-2 py-1 rounded font-bold">${esActivo ? 'Dar Baja' : 'Reactivar'}</button>
                             <button onclick="editarCliente(${c.id})" class="bg-blue-600 text-white px-2 py-1 rounded font-bold">Editar</button>
-                            <button onclick="eliminarCliente(${c.id})" class="bg-red-600 text-white px-2 py-1 rounded font-bold">🗑</button>
+                            <button onclick="eliminarClienteConConfirmacion(${c.id})" class="bg-red-600 text-white px-2 py-1 rounded font-bold">🗑</button>
                         </div>
                     </div>`;
             });
@@ -1558,9 +1687,12 @@
             }
         }
 
-        function eliminarCliente(id) {
-            appState.clientes = appState.clientes.filter(c => c.id !== id);
-            guardarStorage(); renderClientesRuta(); renderPadronClientes(); renderMetricasClientes(); actualizarEnvasesClientesTotalesUI();
+        function eliminarClienteConConfirmacion(id) {
+            const cli = appState.clientes.find(c => c.id === id);
+            if (cli && confirm(`¿Está seguro de que desea eliminar permanentemente al cliente "${cli.nombre}"?`)) {
+                appState.clientes = appState.clientes.filter(c => c.id !== id);
+                guardarStorage(); renderClientesRuta(); renderPadronClientes(); renderMetricasClientes(); actualizarEnvasesClientesTotalesUI();
+            }
         }
 
         function renderMetricasClientes() {
@@ -1634,6 +1766,44 @@
             document.getElementById('fin-rendir-dueno').innerText = '$' + totalRendir;
         }
 
+        function finalizarSemanaCajaConConfirmacion() {
+            if(confirm("¿Desea CONFIRMAR el cierre semanal de Caja?\nEsto archivará el total ganado en el historial y reiniciará el balance semanal a $0.")) {
+                if(!appState.historialCierresSemanales) appState.historialCierresSemanales = [];
+                
+                const recTot = appState.finanzas.efectivo + appState.finanzas.transferencia;
+                appState.historialCierresSemanales.unshift({
+                    fecha: new Date().toLocaleDateString(),
+                    recaudado: recTot,
+                    ventas: { ...appState.ventasSemana }
+                });
+
+                appState.ventasSemana = { b20: 0, b12: 0, soda: 0, soda500: 0, mesa: 0 };
+                appState.finanzas.efectivo = 0;
+                appState.finanzas.transferencia = 0;
+                appState.finanzas.gastos = [];
+
+                guardarStorage();
+                actualizarFinanzasUI();
+                cargarHistorialCierresSemanalesUI();
+                mostrarModal('Cierre Exitoso', 'La semana fue cerrada y guardada en el historial.');
+            }
+        }
+
+        function cargarHistorialCierresSemanalesUI() {
+            const cont = document.getElementById('historial-cierres-semanales');
+            if(!cont) return;
+            if(!appState.historialCierresSemanales || appState.historialCierresSemanales.length === 0) {
+                cont.innerHTML = 'No hay cierres semanales aún.';
+                return;
+            }
+            cont.innerHTML = appState.historialCierresSemanales.map(h => `
+                <div class="bg-gray-50 border p-2 rounded flex justify-between">
+                    <span>📅 <b>${h.fecha}</b></span>
+                    <span class="text-green-700 font-bold">$${h.recaudado.toLocaleString()}</span>
+                </div>
+            `).join('');
+        }
+
         function registrarGasto() {
             const concepto = document.getElementById('gasto-concepto').value.trim();
             const monto = parseInt(document.getElementById('gasto-monto').value) || 0;
@@ -1676,8 +1846,10 @@
         }
 
         function eliminarRecorrido(id) {
-            appState.recorridosGrabados = appState.recorridosGrabados.filter(r => r.id !== id);
-            guardarStorage(); renderRecorridosGuardados();
+            if(confirm("¿Desea borrar este recorrido guardado?")) {
+                appState.recorridosGrabados = appState.recorridosGrabados.filter(r => r.id !== id);
+                guardarStorage(); renderRecorridosGuardados();
+            }
         }
 
         function abrirWhatsapp() {
@@ -1709,11 +1881,11 @@
         window.onload = initApp;
     </script>
     <script>
-  if ('serviceWorker' in navigator) {
-    navigator.serviceWorker.register('./sw.js')
-      .then(() => console.log('Service Worker registrado correctamente'))
-      .catch((err) => console.log('Error al registrar Service Worker', err));
-  }
-</script>
+      if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.register('./sw.js')
+          .then(() => console.log('Service Worker registrado correctamente'))
+          .catch((err) => console.log('Error al registrar Service Worker', err));
+      }
+    </script>
 </body>
 </html>
