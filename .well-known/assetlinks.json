@@ -1,8 +1,14 @@
-[{
-      "relation": ["delegate_permission/common.handle_all_urls"],
-      "target": {
-        "namespace": "android_app",
-        "package_name": "io.github.chosentp.twa",
-        "sha256_cert_fingerprints": ["4B:83:4E:06:82:75:99:D5:A5:81:E4:35:59:BC:87:C5:1B:7F:7A:F3:DD:5F:B7:25:34:98:D4:56:06:15:C7:53"]
-      }
-    }]
+[
+  {
+    "relation": [
+      "delegate_permission/common.handle_all_urls"
+    ],
+    "target": {
+      "namespace": "android_app",
+      "package_name": "io.github.chosentp.twa",
+      "sha256_cert_fingerprints": [
+        "4B:83:4E:06:82:75:99:D5:A5:81:E4:35:59:BC:87:C5:1B:7F:7A:F3:DD:5F:B7:25:34:98:D4:56:06:15:C7:53"
+      ]
+    }
+  }
+]
