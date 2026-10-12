@@ -1,4 +1,4 @@
-const CACHE_NAME = 'soderapp-v1';
+const CACHE_NAME = 'soderapp-v2';
 const urlsToCache = [
   './',
   './index.html',
