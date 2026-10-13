@@ -4,7 +4,7 @@
     <link rel="manifest" href="manifest.json">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Chosen 👑 SoderApp v1.8.4 Satelital Pro</title>
+    <title>Chosen 👑 SoderApp v1.8.5 Satelital Pro</title>
     <!-- Tailwind CSS -->
     <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
     <!-- Leaflet CSS para Mapas -->
@@ -64,7 +64,7 @@
 </head>
 <body class="bg-gray-100 font-sans pb-28 text-gray-900 select-none">
 
-    <!-- Splash Screen Táctil (Tocar cualquier parte de la imagen para ingresar) -->
+    <!-- Splash Screen Táctil -->
     <div id="splash-screen" onclick="cerrarSplash()" class="fixed inset-0 z-50 bg-cover bg-center flex flex-col justify-end pb-16 px-6 cursor-pointer" style="background-image: url('1000638284.jpg');">
         <div class="w-full max-w-sm mx-auto bg-blue-600 hover:bg-blue-700 text-white font-bold py-3.5 px-6 rounded-xl text-center text-base shadow-2xl transition transform active:scale-95 border border-blue-400">
             <span>🚀 TOCA AQUÍ PARA INGRESAR</span>
@@ -195,7 +195,7 @@
                 </div>
             </div>
 
-            <!-- Mapa Satelital Dual (Calles / Satélite) -->
+            <!-- Mapa Satelital Dual -->
             <div class="bg-white p-4 rounded-xl shadow-sm border border-gray-200">
                 <div class="flex items-center justify-between mb-2">
                     <h3 class="text-sm font-bold text-gray-800 flex items-center gap-2">
@@ -218,89 +218,13 @@
                 <div id="mapa-calles-real"></div>
             </div>
 
-            <!-- Clientes en Ruta & Ficha de Atención -->
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div class="bg-white p-4 rounded-xl shadow-sm border border-gray-200">
-                    <div class="flex justify-between items-center mb-3">
-                        <h3 class="text-sm font-bold text-gray-800"><i class="fas fa-list text-blue-600"></i> Clientes en Ruta</h3>
-                        <span id="cant-ruta" class="bg-blue-600 text-white text-xs px-2.5 py-0.5 rounded-full font-bold">0</span>
-                    </div>
-                    <div id="lista-clientes-ruta" class="space-y-2 max-h-96 overflow-y-auto pr-1"></div>
+            <!-- Clientes en Ruta -->
+            <div class="bg-white p-4 rounded-xl shadow-sm border border-gray-200">
+                <div class="flex justify-between items-center mb-3">
+                    <h3 class="text-sm font-bold text-gray-800"><i class="fas fa-list text-blue-600"></i> Clientes en Ruta</h3>
+                    <span id="cant-ruta" class="bg-blue-600 text-white text-xs px-2.5 py-0.5 rounded-full font-bold">0</span>
                 </div>
-
-                <div id="ficha-cliente" class="hidden bg-white p-4 rounded-xl shadow-md border-2 border-blue-500 space-y-3">
-                    <div class="border-b pb-2">
-                        <h3 class="text-base font-bold text-gray-900">Atendiendo a: <span id="fc-nombre" class="text-blue-700"></span></h3>
-                        <span id="fc-tipo" class="text-xs bg-blue-100 text-blue-800 font-bold px-2 py-0.5 rounded"></span>
-                    </div>
-                    
-                    <div class="text-xs text-gray-700 space-y-1">
-                        <p><strong>Dirección:</strong> <span id="fc-direccion"></span></p>
-                        <p><strong>Notas Tácticas:</strong> <span id="fc-notas" class="text-blue-700 font-bold"></span></p>
-                        <p><strong>Vacíos Actuales del Cliente:</strong> <span id="fc-vacios-info" class="text-yellow-600 font-bold"></span></p>
-                        <div class="flex items-center gap-2">
-                            <span><strong>Teléfono:</strong> <span id="fc-tel"></span></span>
-                            <button onclick="abrirWhatsapp()" class="bg-green-600 hover:bg-green-700 text-white text-xs px-2 py-1 rounded font-bold flex items-center gap-1">
-                                <i class="fab fa-whatsapp"></i> WhatsApp
-                            </button>
-                        </div>
-                    </div>
-
-                    <div id="box-foto-fachada"><img id="fc-foto" class="preview-img hidden" alt="Fachada"></div>
-
-                    <div>
-                        <label class="block text-xs font-bold text-gray-700 mb-1">Cambiar Estado de Visita:</label>
-                        <select id="vta-estado-visita" class="w-full p-2 text-xs border rounded-lg bg-gray-50" onchange="cambiarEstadoDirecto()">
-                            <option value="Pendiente">🟠 Pendiente</option>
-                            <option value="Entregado">🟢 Entregado</option>
-                            <option value="NoEstaba">🔴 No Estaba</option>
-                            <option value="Volver">🟡 Volver Después</option>
-                            <option value="NoDejo">⚪ No Compró</option>
-                        </select>
-                    </div>
-
-                    <hr class="my-2">
-                    <p class="text-xs font-bold text-gray-800">📦 Cantidades A Entregar:</p>
-                    <div class="grid grid-cols-2 gap-2 text-xs">
-                        <div><label class="block font-semibold">Bidón 20L:</label><input type="number" id="vta-cant-20" value="0" min="0" class="w-full p-1.5 border rounded" oninput="calcularVenta()"></div>
-                        <div><label class="block font-semibold">Bidón 12L:</label><input type="number" id="vta-cant-12" value="0" min="0" class="w-full p-1.5 border rounded" oninput="calcularVenta()"></div>
-                        <div><label class="block font-semibold">Sifones Soda 1L:</label><input type="number" id="vta-cant-soda" value="0" min="0" class="w-full p-1.5 border rounded" oninput="calcularVenta()"></div>
-                        <div><label class="block font-semibold">Sifones Soda 500ml:</label><input type="number" id="vta-cant-soda500" value="0" min="0" class="w-full p-1.5 border rounded" oninput="calcularVenta()"></div>
-                        <div class="col-span-2"><label class="block font-semibold">Venta Dispense Mesa:</label><input type="number" id="vta-cant-mesa" value="0" min="0" class="w-full p-1.5 border rounded" oninput="calcularVenta()"></div>
-                    </div>
-
-                    <hr class="my-2">
-                    <p class="text-xs font-bold text-gray-800">🔄 Devolución Envases Vacíos:</p>
-                    <div class="grid grid-cols-2 gap-2 text-xs">
-                        <div><label class="block font-semibold">Dev. Vacíos 20L:</label><input type="number" id="vta-dev-20" value="0" min="0" class="w-full p-1.5 border rounded"></div>
-                        <div><label class="block font-semibold">Dev. Vacíos 12L:</label><input type="number" id="vta-dev-12" value="0" min="0" class="w-full p-1.5 border rounded"></div>
-                        <div><label class="block font-semibold">Dev. Sifones 1L:</label><input type="number" id="vta-dev-soda" value="0" min="0" class="w-full p-1.5 border rounded"></div>
-                        <div><label class="block font-semibold">Dev. Sifones 500ml:</label><input type="number" id="vta-dev-soda500" value="0" min="0" class="w-full p-1.5 border rounded"></div>
-                    </div>
-
-                    <hr class="my-2">
-                    <div class="grid grid-cols-3 gap-2 text-xs">
-                        <div>
-                            <label class="block font-semibold">Forma Pago:</label>
-                            <select id="vta-medio" class="w-full p-1.5 border rounded bg-white">
-                                <option value="Efectivo">Efectivo</option>
-                                <option value="Transferencia">Transferencia</option>
-                            </select>
-                        </div>
-                        <div>
-                            <label class="block font-semibold">Total ($):</label>
-                            <input type="number" id="vta-total" value="0" readonly class="w-full p-1.5 border rounded bg-gray-100 font-bold">
-                        </div>
-                        <div>
-                            <label class="block font-semibold">Monto Pagado ($):</label>
-                            <input type="number" id="vta-pago" value="0" class="w-full p-1.5 border rounded font-bold">
-                        </div>
-                    </div>
-
-                    <button onclick="completarVentaConConfirmacion()" class="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-2.5 px-4 rounded-lg shadow text-xs sm:text-sm">
-                        Confirmar Venta y Entrega
-                    </button>
-                </div>
+                <div id="lista-clientes-ruta" class="space-y-2 max-h-96 overflow-y-auto pr-1"></div>
             </div>
 
         </div>
@@ -405,10 +329,10 @@
                     </div>
 
                     <div>
-                        <label class="block font-bold text-gray-700 mb-1">Foto de Fachada:</label>
-                        <input type="file" id="alta-foto-input" accept="image/*" capture="environment" class="hidden" onchange="previewFotoCliente(event)">
+                        <label class="block font-bold text-gray-700 mb-1">Foto de Fachada (Galería o Cámara):</label>
+                        <input type="file" id="alta-foto-input" accept="image/*" class="hidden" onchange="previewFotoCliente(event)">
                         <button type="button" onclick="document.getElementById('alta-foto-input').click()" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-3 rounded-lg text-xs shadow flex items-center justify-center gap-1 mb-2">
-                            <i class="fas fa-camera"></i> 📷 Abrir Cámara Directa
+                            <i class="fas fa-camera"></i> 📷 Seleccionar Foto / Cámara
                         </button>
                         <img id="alta-foto-preview" class="preview-img hidden mt-1" alt="Vista previa fachada">
                     </div>
@@ -753,11 +677,11 @@
                 </div>
             </div>
 
-            <!-- Sección "Acerca de..." con Fondo Local de Olas -->
+            <!-- Sección "Acerca de..." -->
             <div class="rounded-2xl shadow-xl overflow-hidden text-white bg-about-waves border border-blue-500/30">
                 <div class="p-6 space-y-4">
                     <div class="text-center space-y-1">
-                        <span class="bg-yellow-500 text-black px-3 py-0.5 rounded-full text-xs font-bold uppercase tracking-wide">Versión 1.8.4 Pro</span>
+                        <span class="bg-yellow-500 text-black px-3 py-0.5 rounded-full text-xs font-bold uppercase tracking-wide">Versión 1.8.5 Pro</span>
                         <h2 class="text-2xl font-extrabold text-yellow-300">Chosen SoderApp</h2>
                         <p class="text-xs text-gray-200">Sistema de Control Total Satelital & Gestión de Soda y Agua</p>
                     </div>
@@ -800,10 +724,13 @@
         </button>
     </nav>
 
-    <!-- MODAL GENERAL / MENÚ FLOTANTE MAPA -->
+    <!-- MODAL GENERAL / FICHA FLOTANTE DE ATENCIÓN -->
     <div id="app-modal" class="fixed inset-0 bg-black bg-opacity-50 hidden flex items-center justify-center z-50 p-4">
-        <div class="bg-white p-5 rounded-2xl max-w-sm w-full space-y-3 text-center shadow-xl">
-            <h3 id="modal-title" class="text-base font-bold text-gray-800">Alerta</h3>
+        <div class="bg-white p-5 rounded-2xl max-w-md w-full space-y-3 shadow-xl max-h-[90vh] overflow-y-auto relative">
+            <button onclick="cerrarModal()" class="absolute top-3 right-3 text-gray-500 hover:text-gray-800 text-lg font-bold w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center">
+                <i class="fas fa-times"></i>
+            </button>
+            <h3 id="modal-title" class="text-base font-bold text-gray-800 pr-6">Alerta</h3>
             <div id="modal-msg" class="text-xs text-gray-600 space-y-2"></div>
             <div id="modal-buttons" class="pt-2">
                 <button onclick="cerrarModal()" class="w-full bg-blue-600 text-white font-bold py-2 rounded-lg text-xs shadow">Aceptar</button>
@@ -814,7 +741,7 @@
     <!-- Leaflet JS -->
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
-    <!-- LÓGICA JS 1.8.4 PRO -->
+    <!-- LÓGICA JS 1.8.5 PRO -->
     <script>
         let appState = {
             precios: { b20: 3000, b12: 2200, soda: 1800, soda500: 1200, fc: 8000, mesa: 15000 },
@@ -843,8 +770,8 @@
             darkMode: false,
             tipoMapa: "satelite",
             clientes: [
-                { id: 1, nombre: "Juan Pérez", zona: "Villa Media Agua", direccion: "Calle Barboza s/n", tel: "2645123456", dia: "Lunes", tipo: "Cliente Fijo", notas: "Puerta reja verde", estado: "Pendiente", activo: true, gps: { lat: -31.9800, lng: -68.4320 }, vacios: { b20: 2, b12: 0, soda: 1, soda500: 0 }, deuda: 0, totalHistorico: 15000 },
-                { id: 2, nombre: "María Gómez", zona: "Los Berros - Parte Alta", direccion: "Ruta 40", tel: "2644987654", dia: "Lunes", tipo: "Posible Cliente", notas: "Al lado del almacén", estado: "Pendiente", activo: true, gps: { lat: -31.9500, lng: -68.4100 }, vacios: { b20: 0, b12: 0, soda: 0, soda500: 0 }, deuda: 0, totalHistorico: 0 }
+                { id: 1, nombre: "Juan Pérez", zona: "Villa Media Agua", direccion: "Calle Barboza s/n", tel: "2645123456", dia: "Lunes", tipo: "Cliente Fijo", notas: "Puerta reja verde", estado: "Pendiente", activo: true, gps: { lat: -31.9800, lng: -68.4320 }, vacios: { b20: 2, b12: 0, soda: 1, soda500: 0 }, deuda: 0, totalHistorico: 15000, preciosPersonalizados: {} },
+                { id: 2, nombre: "María Gómez", zona: "Los Berros - Parte Alta", direccion: "Ruta 40", tel: "2644987654", dia: "Lunes", tipo: "Posible Cliente", notas: "Al lado del almacén", estado: "Pendiente", activo: true, gps: { lat: -31.9500, lng: -68.4100 }, vacios: { b20: 0, b12: 0, soda: 0, soda500: 0 }, deuda: 0, totalHistorico: 0, preciosPersonalizados: {} }
             ],
             historialCargas: [],
             recorridosGrabados: []
@@ -861,7 +788,11 @@
             if(splash) splash.style.display = 'none'; 
         }
 
-        function initApp() {
+        async function initApp() {
+            // Persistencia de almacenamiento navegador
+            if (navigator.storage && navigator.storage.persist) {
+                await navigator.storage.persist();
+            }
             document.getElementById('sel-fecha-trabajo').value = new Date().toISOString().split('T')[0];
             cargarStorage();
             if (appState.darkMode) document.body.classList.add('dark-mode');
@@ -911,7 +842,6 @@
                 guardarStorage();
             });
 
-            // DOBLE CLIC EN EL MAPA: ABRE MENÚ FLOTANTE INTELIGENTE
             mapLeaflet.on('dblclick', function(e) {
                 const lat = e.latlng.lat;
                 const lng = e.latlng.lng;
@@ -933,7 +863,6 @@
                     </button>
                 </div>
             `;
-            document.getElementById('modal-buttons').innerHTML = `<button onclick="cerrarModal()" class="w-full bg-gray-400 text-white font-bold py-2 rounded-lg text-xs shadow">Cancelar</button>`;
             document.getElementById('app-modal').classList.remove('hidden');
         }
 
@@ -954,7 +883,6 @@
                 <input type="text" id="input-buscar-mapa" placeholder="Escribí el nombre del cliente..." class="w-full p-2 border rounded text-xs mb-2" oninput="filtrarClientesMapaModal(${lat}, ${lng})">
                 <div id="lista-resultados-mapa" class="max-h-48 overflow-y-auto space-y-1 text-left"></div>
             `;
-            document.getElementById('modal-buttons').innerHTML = `<button onclick="cerrarModal()" class="w-full bg-gray-400 text-white font-bold py-2 rounded-lg text-xs shadow">Cancelar</button>`;
             filtrarClientesMapaModal(lat, lng);
         }
 
@@ -1053,7 +981,7 @@
             const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(appState));
             const downloadAnchor = document.createElement('a');
             downloadAnchor.setAttribute("href", dataStr);
-            downloadAnchor.setAttribute("download", `soderapp_v184_backup_${new Date().toISOString().split('T')[0]}.json`);
+            downloadAnchor.setAttribute("download", `soderapp_v185_backup_${new Date().toISOString().split('T')[0]}.json`);
             document.body.appendChild(downloadAnchor);
             downloadAnchor.click();
             downloadAnchor.remove();
@@ -1082,7 +1010,7 @@
 
         function guardarStorage() {
             try {
-                localStorage.setItem('chosen_soderapp_v184_data', JSON.stringify(appState));
+                localStorage.setItem('chosen_soderapp_v185_data', JSON.stringify(appState));
             } catch (e) {
                 console.error("Error storage:", e);
                 mostrarModal("Alerta de Memoria", "La imagen es muy pesada. Intente con una foto más liviana.");
@@ -1090,7 +1018,7 @@
         }
 
         function cargarStorage() {
-            const data = localStorage.getItem('chosen_soderapp_v184_data');
+            const data = localStorage.getItem('chosen_soderapp_v185_data');
             if (data) { try { appState = JSON.parse(data); } catch(e) {} }
         }
 
@@ -1430,32 +1358,117 @@
             calcularRecomendacionCarga();
         }
 
+        // FICHA FLOTANTE DE ATENCIÓN DE CLIENTE
         function abrirFichaCliente(id) {
             const cli = appState.clientes.find(c => c.id === id); if (!cli) return;
             appState.clienteSeleccionadoId = id;
-            document.getElementById('fc-nombre').innerText = cli.nombre;
-            document.getElementById('fc-tipo').innerText = cli.tipo || 'Cliente Fijo';
-            document.getElementById('fc-direccion').innerText = cli.direccion;
-            document.getElementById('fc-notas').innerText = cli.notas || 'Sin notas';
-            document.getElementById('fc-tel').innerText = cli.tel || 'S/T';
             
+            if(!cli.preciosPersonalizados) cli.preciosPersonalizados = {};
+
+            document.getElementById('modal-title').innerText = `Atendiendo a: ${cli.nombre}`;
+            const msgDiv = document.getElementById('modal-msg');
+
             const v20 = cli.vacios ? (cli.vacios.b20 || 0) : 0;
             const v12 = cli.vacios ? (cli.vacios.b12 || 0) : 0;
             const vsoda = cli.vacios ? (cli.vacios.soda || 0) : 0;
             const vsoda500 = cli.vacios ? (cli.vacios.soda500 || 0) : 0;
-            document.getElementById('fc-vacios-info').innerText = `20L: ${v20} | 12L: ${v12} | Sif.1L: ${vsoda} | Sif.500ml: ${vsoda500}`;
 
-            document.getElementById('vta-estado-visita').value = cli.estado || 'Pendiente';
+            msgDiv.innerHTML = `
+                <div class="space-y-3 text-left">
+                    <div class="border-b pb-2">
+                        <span class="text-xs bg-blue-100 text-blue-800 font-bold px-2 py-0.5 rounded">${cli.tipo || 'Cliente Fijo'}</span>
+                        <p class="mt-1"><strong>Dirección:</strong> ${cli.direccion}</p>
+                        <p><strong>Notas Tácticas:</strong> <span class="text-blue-700 font-bold">${cli.notas || 'Sin notas'}</span></p>
+                        <p><strong>Vacíos Actuales:</strong> <span class="text-yellow-600 font-bold">20L: ${v20} | 12L: ${v12} | Sif.1L: ${vsoda} | Sif.500: ${vsoda500}</span></p>
+                        <div class="flex items-center gap-2 mt-1">
+                            <span><strong>Teléfono:</strong> ${cli.tel || 'S/T'}</span>
+                            <button onclick="abrirWhatsapp()" class="bg-green-600 hover:bg-green-700 text-white text-xs px-2 py-1 rounded font-bold flex items-center gap-1">
+                                <i class="fab fa-whatsapp"></i> WhatsApp
+                            </button>
+                        </div>
+                    </div>
 
-            const img = document.getElementById('fc-foto');
-            if (cli.foto) { img.src = cli.foto; img.classList.remove('hidden'); } else { img.classList.add('hidden'); }
-            document.getElementById('ficha-cliente').classList.remove('hidden');
+                    ${cli.foto ? `<img src="${cli.foto}" class="preview-img" alt="Fachada">` : ''}
+
+                    <div>
+                        <label class="block text-xs font-bold text-gray-700 mb-1">Cambiar Estado de Visita:</label>
+                        <select id="vta-estado-visita" class="w-full p-2 text-xs border rounded-lg bg-gray-50" onchange="onEstadoVisitaChange()">
+                            <option value="Pendiente" ${cli.estado==='Pendiente'?'selected':''}>🟠 Pendiente</option>
+                            <option value="Entregado" ${cli.estado==='Entregado'?'selected':''}>🟢 Entregado</option>
+                            <option value="NoEstaba" ${cli.estado==='NoEstaba'?'selected':''}>🔴 No Estaba</option>
+                            <option value="Volver" ${cli.estado==='Volver'?'selected':''}>🟡 Volver Después</option>
+                            <option value="NoDejo" ${cli.estado==='NoDejo'?'selected':''}>⚪ No Compró</option>
+                        </select>
+                    </div>
+
+                    <hr class="my-2">
+                    <p class="text-xs font-bold text-gray-800">📦 Cantidades A Entregar:</p>
+                    <div class="grid grid-cols-2 gap-2 text-xs">
+                        <div><label class="block font-semibold">Bidón 20L:</label><input type="number" id="vta-cant-20" value="0" min="0" class="w-full p-1.5 border rounded" oninput="calcularVenta()"></div>
+                        <div><label class="block font-semibold">Bidón 12L:</label><input type="number" id="vta-cant-12" value="0" min="0" class="w-full p-1.5 border rounded" oninput="calcularVenta()"></div>
+                        <div><label class="block font-semibold">Sifones Soda 1L:</label><input type="number" id="vta-cant-soda" value="0" min="0" class="w-full p-1.5 border rounded" oninput="calcularVenta()"></div>
+                        <div><label class="block font-semibold">Sifones Soda 500ml:</label><input type="number" id="vta-cant-soda500" value="0" min="0" class="w-full p-1.5 border rounded" oninput="calcularVenta()"></div>
+                        <div class="col-span-2"><label class="block font-semibold">Venta Dispense Mesa:</label><input type="number" id="vta-cant-mesa" value="0" min="0" class="w-full p-1.5 border rounded" oninput="calcularVenta()"></div>
+                    </div>
+
+                    <hr class="my-2">
+                    <p class="text-xs font-bold text-gray-800">🔄 Devolución Envases Vacíos:</p>
+                    <div class="grid grid-cols-2 gap-2 text-xs">
+                        <div><label class="block font-semibold">Dev. Vacíos 20L:</label><input type="number" id="vta-dev-20" value="0" min="0" class="w-full p-1.5 border rounded"></div>
+                        <div><label class="block font-semibold">Dev. Vacíos 12L:</label><input type="number" id="vta-dev-12" value="0" min="0" class="w-full p-1.5 border rounded"></div>
+                        <div><label class="block font-semibold">Dev. Sifones 1L:</label><input type="number" id="vta-dev-soda" value="0" min="0" class="w-full p-1.5 border rounded"></div>
+                        <div><label class="block font-semibold">Dev. Sifones 500ml:</label><input type="number" id="vta-dev-soda500" value="0" min="0" class="w-full p-1.5 border rounded"></div>
+                    </div>
+
+                    <hr class="my-2">
+                    <div class="grid grid-cols-3 gap-2 text-xs">
+                        <div>
+                            <label class="block font-semibold">Forma Pago:</label>
+                            <select id="vta-medio" class="w-full p-1.5 border rounded bg-white">
+                                <option value="Efectivo">Efectivo</option>
+                                <option value="Transferencia">Transferencia</option>
+                                <option value="Fiado">Fiado (Cuenta Corriente)</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block font-semibold">Total ($):</label>
+                            <input type="number" id="vta-total" value="0" readonly class="w-full p-1.5 border rounded bg-gray-100 font-bold">
+                        </div>
+                        <div>
+                            <label class="block font-semibold">Monto Pagado ($):</label>
+                            <input type="number" id="vta-pago" value="0" class="w-full p-1.5 border rounded font-bold">
+                        </div>
+                    </div>
+
+                    <div class="bg-gray-50 p-2 rounded border mt-2">
+                        <span class="font-bold text-gray-700 block mb-1 text-[11px]">⚙️ Modificar Precio Unitario para este Cliente ($):</span>
+                        <div class="grid grid-cols-2 gap-2 text-xs">
+                            <div><label>P. 20L:</label><input type="number" id="custom-prc-20" value="${cli.preciosPersonalizados.b20 || appState.precios.b20}" class="w-full p-1 border rounded" oninput="calcularVenta()"></div>
+                            <div><label>P. Soda:</label><input type="number" id="custom-prc-soda" value="${cli.preciosPersonalizados.soda || appState.precios.soda}" class="w-full p-1 border rounded" oninput="calcularVenta()"></div>
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            document.getElementById('modal-buttons').innerHTML = `
+                <button onclick="completarVentaConConfirmacion()" class="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-2.5 px-4 rounded-lg shadow text-xs sm:text-sm">
+                    Confirmar Venta y Limpiar Formulario
+                </button>
+            `;
+            document.getElementById('app-modal').classList.remove('hidden');
             calcularVenta();
         }
 
-        function cambiarEstadoDirecto() {
-            const cli = appState.clientes.find(c => c.id === appState.clienteSeleccionadoId);
-            if (cli) { cli.estado = document.getElementById('vta-estado-visita').value; guardarStorage(); renderClientesRuta(); }
+        function onEstadoVisitaChange() {
+            const est = document.getElementById('vta-estado-visita').value;
+            if (est === 'NoEstaba' || est === 'Pendiente') {
+                document.getElementById('vta-cant-20').value = 0;
+                document.getElementById('vta-cant-12').value = 0;
+                document.getElementById('vta-cant-soda').value = 0;
+                document.getElementById('vta-cant-soda500').value = 0;
+                document.getElementById('vta-cant-mesa').value = 0;
+                calcularVenta();
+            }
         }
 
         function calcularVenta() {
@@ -1465,7 +1478,10 @@
             const cSoda500 = parseInt(document.getElementById('vta-cant-soda500').value) || 0;
             const cMesa = parseInt(document.getElementById('vta-cant-mesa').value) || 0;
 
-            const total = (c20 * appState.precios.b20) + (c12 * appState.precios.b12) + (cSoda * appState.precios.soda) + (cSoda500 * (appState.precios.soda500 || 1200)) + (cMesa * appState.precios.mesa);
+            const p20 = parseInt(document.getElementById('custom-prc-20').value) || appState.precios.b20;
+            const pSoda = parseInt(document.getElementById('custom-prc-soda').value) || appState.precios.soda;
+
+            const total = (c20 * p20) + (c12 * appState.precios.b12) + (cSoda * pSoda) + (cSoda500 * (appState.precios.soda500 || 1200)) + (cMesa * appState.precios.mesa);
             document.getElementById('vta-total').value = total; 
             document.getElementById('vta-pago').value = total;
         }
@@ -1513,7 +1529,10 @@
             appState.camionEnVivo.vacios.soda500 += devSoda500;
 
             if (medio === 'Efectivo') appState.finanzas.efectivo += total;
-            else appState.finanzas.transferencia += total;
+            else if (medio === 'Transferencia') appState.finanzas.transferencia += total;
+            else if (medio === 'Fiado') {
+                cli.deuda = (cli.deuda || 0) + total;
+            }
 
             appState.ventasDelDia.b20 += c20; 
             appState.ventasDelDia.b12 += c12;
@@ -1532,8 +1551,8 @@
             renderClientesRuta();
             actualizarFinanzasUI();
             actualizarEnvasesClientesTotalesUI();
-            document.getElementById('ficha-cliente').classList.add('hidden');
-            mostrarModal('Venta Exitosa', 'Se registró la entrega y se descontó del camión.');
+            cerrarModal();
+            mostrarModal('Venta Exitosa', 'Se registró la entrega y se limpió el formulario correctamente.');
         }
 
         function comprimirImagen(file, callback) {
@@ -1568,24 +1587,38 @@
                 comprimirImagen(file, function(dataUrl) {
                     appState.tempFotoData = dataUrl;
                     const preview = document.getElementById('alta-foto-preview');
-                    preview.src = dataUrl;
-                    preview.classList.remove('hidden');
+                    if(preview) {
+                        preview.src = dataUrl;
+                        preview.classList.remove('hidden');
+                    }
                 });
             }
         }
 
+        // CAPTURA GPS ESTILO WHATSAPP (CUENTA REGRESIVA PRECISIÓN)
         function capturarGpsClienteEnVivo() {
-            if (navigator.geolocation) {
-                navigator.geolocation.getCurrentPosition(pos => {
-                    appState.tempGpsData = { lat: pos.coords.latitude, lng: pos.coords.longitude };
-                    document.getElementById('gps-status-txt').innerText = `GPS: (${pos.coords.latitude.toFixed(4)}, ${pos.coords.longitude.toFixed(4)})`;
-                    mostrarModal('GPS Capturado', 'Coordenadas obtenidas correctamente.');
-                }, err => {
-                    mostrarModal('Error GPS', 'No se pudo obtener la ubicación.');
-                });
-            } else {
+            if (!navigator.geolocation) {
                 mostrarModal('Error', 'Geolocalización no soportada por tu navegador.');
+                return;
             }
+            document.getElementById('gps-status-txt').innerText = '🛰️ Buscando señal fina... (Espere)';
+            
+            let watchId = navigator.geolocation.watchPosition(pos => {
+                const lat = pos.coords.latitude;
+                const lng = pos.coords.longitude;
+                const acc = Math.round(pos.coords.accuracy);
+                
+                document.getElementById('gps-status-txt').innerText = `🛰️ Precisión: ${acc}m (${lat.toFixed(4)}, ${lng.toFixed(4)})`;
+
+                if (acc <= 15) {
+                    navigator.geolocation.clearWatch(watchId);
+                    appState.tempGpsData = { lat, lng };
+                    document.getElementById('gps-status-txt').innerText = `✅ GPS Fijo en puerta (${acc}m): (${lat.toFixed(4)}, ${lng.toFixed(4)})`;
+                    mostrarModal('GPS Preciso Obtenido', `Se fijó la posición con ${acc}m de precisión.`);
+                }
+            }, err => {
+                mostrarModal('Error GPS', 'No se pudo obtener la ubicación.');
+            }, { enableHighAccuracy: true, timeout: 15000, maximumAge: 0 });
         }
 
         function guardarRegistroClienteConConfirmacion() {
@@ -1624,7 +1657,7 @@
                 foto: appState.tempFotoData || '',
                 gps: appState.tempGpsData || appState.mapState || { lat: -31.980, lng: -68.433 },
                 vacios: { b20: vac20, b12: vac12, soda: vacSoda, soda500: vacSoda500 },
-                deuda: 0, totalHistorico: 0
+                denda: 0, totalHistorico: 0, preciosPersonalizados: {}
             };
 
             if (editId) {
@@ -1634,6 +1667,7 @@
                     nuevoCli.gps = appState.tempGpsData || appState.clientes[idx].gps;
                     nuevoCli.vacios = { b20: vac20, b12: vac12, soda: vacSoda, soda500: vacSoda500 };
                     nuevoCli.activo = appState.clientes[idx].activo;
+                    nuevoCli.preciosPersonalizados = appState.clientes[idx].preciosPersonalizados || {};
                     appState.clientes[idx] = nuevoCli;
                 }
             } else {
@@ -1661,7 +1695,8 @@
             document.getElementById('alta-vac-soda').value = '0';
             document.getElementById('alta-vac-soda500').value = '0';
             document.getElementById('alta-foto-input').value = '';
-            document.getElementById('alta-foto-preview').classList.add('hidden');
+            const prev = document.getElementById('alta-foto-preview');
+            if(prev) prev.classList.add('hidden');
             document.getElementById('gps-status-txt').innerText = 'GPS: No capturado';
             appState.tempFotoData = ''; appState.tempGpsData = null;
         }
@@ -1680,6 +1715,7 @@
                 const v12 = c.vacios ? (c.vacios.b12 || 0) : 0;
                 const vsoda = c.vacios ? (c.vacios.soda || 0) : 0;
                 const vsoda500 = c.vacios ? (c.vacios.soda500 || 0) : 0;
+                const deudaCli = c.deuda || 0;
 
                 cont.innerHTML += `
                     <div class="bg-gray-50 border p-2.5 rounded-lg flex justify-between items-center text-xs">
@@ -1687,6 +1723,7 @@
                             <strong>${c.nombre}</strong> <span class="text-blue-600">(${c.tipo})</span><br>
                             <span class="text-gray-600">${c.direccion} - Día: ${c.dia}</span><br>
                             <span class="text-yellow-700 font-semibold">Vacíos: 20L(${v20}) 12L(${v12}) Sif.1L(${vsoda}) Sif.500ml(${vsoda500})</span>
+                            ${deudaCli > function(){return 0}() ? `<br><span class="text-red-600 font-bold">⚠️ Deuda (Fiado): $${deudaCli}</span>` : ''}
                             <span class="ml-2 px-2 py-0.5 rounded font-bold ${estadoClase}">${estadoTexto}</span>
                         </div>
                         <div class="flex gap-1">
@@ -1731,9 +1768,10 @@
             appState.tempGpsData = cli.gps || null;
             if (cli.foto) {
                 const prev = document.getElementById('alta-foto-preview');
-                prev.src = cli.foto; prev.classList.remove('hidden');
+                if(prev) { prev.src = cli.foto; prev.classList.remove('hidden'); }
             } else {
-                document.getElementById('alta-foto-preview').classList.add('hidden');
+                const prev = document.getElementById('alta-foto-preview');
+                if(prev) prev.classList.add('hidden');
             }
             if (cli.gps && cli.gps.lat) {
                 document.getElementById('gps-status-txt').innerText = `GPS: (${cli.gps.lat.toFixed(4)}, ${cli.gps.lng.toFixed(4)})`;
