@@ -1,10 +1,10 @@
 {
-  "id": "/soderapp/",
+  "id": "./",
   "name": "SoderApp Pro",
   "short_name": "SoderApp",
   "description": "Aplicación de gestión de reparto y clientes para SoderApp Pro",
-  "start_url": "/soderapp/",
-  "scope": "/soderapp/",
+  "start_url": "./index.html",
+  "scope": "./",
   "lang": "es",
   "dir": "ltr",
   "display": "standalone",
@@ -30,7 +30,7 @@
     "preferred_width": 400
   },
   "share_target": {
-    "action": "/soderapp/",
+    "action": "./index.html",
     "method": "GET",
     "params": {
       "title": "title",
@@ -46,7 +46,7 @@
       "name": "SoderApp Pro",
       "short_name": "SoderApp",
       "description": "Abrir SoderApp Pro",
-      "url": "/soderapp/",
+      "url": "./index.html",
       "icons": [
         {
           "src": "icon.png",
