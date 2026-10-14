@@ -4,7 +4,7 @@
     <link rel="manifest" href="manifest.json">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Chosen 👑 SoderApp Pro v1.8.6</title>
+    <title>Chosen 👑 SoderApp Pro v1.8.6 Pro</title>
     <!-- Tailwind CSS -->
     <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
     <!-- Leaflet CSS para Mapas -->
@@ -356,13 +356,12 @@
                 </div>
             </div>
 
-            <!-- Padrón de Clientes con Filtro por Día -->
+            <!-- Padrón de Clientes con Filtro por Día y Botón de Eliminar Directo -->
             <div id="sec-padron-cliente" class="bg-white p-4 rounded-xl shadow-sm border border-gray-200">
                 <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 mb-3">
                     <h3 class="text-sm font-bold text-gray-800"><i class="fas fa-users text-blue-600"></i> Padrón General de Clientes (1000+)</h3>
                 </div>
                 
-                <!-- Selector Desplegable por Día (Punto clave) -->
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 mb-3">
                     <div>
                         <label class="block font-bold text-gray-700 text-xs mb-1">Filtrar por Día de Reparto:</label>
@@ -511,7 +510,7 @@
             </div>
         </div>
 
-        <!-- TAB 4: PRECIOS -->
+        <!-- TAB 4: PRECIOS Y PACKS SEPARADOS -->
         <div id="tab-precios" class="tab-content space-y-4">
             <div class="bg-white p-4 rounded-xl shadow-md border-2 border-blue-500">
                 <h2 class="text-base font-bold text-blue-900 mb-3"><i class="fas fa-tags text-blue-600"></i> Panel Central de Tarifas y Precios</h2>
@@ -525,12 +524,20 @@
                         <input type="number" id="prc-b12" class="w-full p-2 border rounded-lg">
                     </div>
                     <div>
-                        <label class="block font-bold text-gray-700 mb-1">Precio Soda 1L ($):</label>
+                        <label class="block font-bold text-gray-700 mb-1">Precio Sifón 1L Unidad ($):</label>
                         <input type="number" id="prc-soda" class="w-full p-2 border rounded-lg">
                     </div>
                     <div>
-                        <label class="block font-bold text-gray-700 mb-1">Precio Soda 500ml ($):</label>
+                        <label class="block font-bold text-gray-700 mb-1">Precio Pack Sifón 1L (x6 Unidades) ($):</label>
+                        <input type="number" id="prc-pack-soda" class="w-full p-2 border rounded-lg">
+                    </div>
+                    <div>
+                        <label class="block font-bold text-gray-700 mb-1">Precio Sifón 500ml Unidad ($):</label>
                         <input type="number" id="prc-soda500" class="w-full p-2 border rounded-lg">
+                    </div>
+                    <div>
+                        <label class="block font-bold text-gray-700 mb-1">Precio Pack Sifón 500ml (x12 Unidades) ($):</label>
+                        <input type="number" id="prc-pack-soda500" class="w-full p-2 border rounded-lg">
                     </div>
                     <div>
                         <label class="block font-bold text-gray-700 mb-1">Alquiler Dispenser F/C ($):</label>
@@ -640,10 +647,10 @@
             </div>
         </div>
 
-        <!-- TAB 6: CONFIGURACIÓN & ACERCA DE (Galpón y Plantillas WhatsApp integradas) -->
+        <!-- TAB 6: CONFIGURACIÓN & NUEVAS OPCIONES -->
         <div id="tab-config" class="tab-content space-y-4">
             
-            <!-- Configuración del Galpón (Movido aquí desde la pantalla principal) -->
+            <!-- Configuración del Galpón -->
             <div class="bg-white p-4 rounded-xl shadow-sm border border-gray-200 space-y-3">
                 <h3 class="text-sm font-bold text-gray-800 flex items-center gap-2">
                     <i class="fas fa-warehouse text-blue-600"></i> Configuración de Galpón / Depósito (Origen)
@@ -664,6 +671,53 @@
                     <p class="text-[11px] text-gray-500">Hacé clic en el mapa para establecer la ubicación exacta del galpón:</p>
                     <div id="mapa-galpon-real"></div>
                 </div>
+            </div>
+
+            <!-- 1. Impresora Térmica Bluetooth -->
+            <div class="bg-white p-4 rounded-xl shadow-sm border border-gray-200 space-y-2">
+                <h3 class="text-sm font-bold text-gray-800 flex items-center gap-2">
+                    <i class="fas fa-print text-indigo-600"></i> 1. Configuración de Impresora Térmica
+                </h3>
+                <p class="text-xs text-gray-500">Conexión vía Bluetooth para emparejar la ticketera portátil y emitir comprobantes o remitos físicos.</p>
+                <button onclick="mostrarModal('Impresora Térmica', 'Buscando dispositivos Bluetooth cercanos... Asegúrese de tener el Bluetooth encendido.')" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold py-2 px-3 rounded-lg shadow">
+                    🔍 Vincular Ticketera Bluetooth
+                </button>
+            </div>
+
+            <!-- 2. Facturación Electrónica -->
+            <div class="bg-white p-4 rounded-xl shadow-sm border border-gray-200 space-y-2">
+                <h3 class="text-sm font-bold text-gray-800 flex items-center gap-2">
+                    <i class="fas fa-file-invoice-dollar text-green-600"></i> 2. Parámetros de Facturación Electrónica
+                </h3>
+                <p class="text-xs text-gray-500">Configuración de datos fiscales para emisión automática de facturas al concretar ventas.</p>
+                <div class="flex items-center justify-between text-xs pt-1">
+                    <span class="font-bold text-gray-700">Estado de Facturación:</span>
+                    <button onclick="toggleFacturacionElectronica()" id="btn-facturacion-status" class="bg-green-600 text-white px-3 py-1 rounded font-bold">Activado</button>
+                </div>
+            </div>
+
+            <!-- 3. Términos y Condiciones -->
+            <div class="bg-white p-4 rounded-xl shadow-sm border border-gray-200 space-y-2">
+                <h3 class="text-sm font-bold text-gray-800 flex items-center gap-2">
+                    <i class="fas fa-file-contract text-blue-600"></i> 3. Términos y Condiciones del Servicio
+                </h3>
+                <p class="text-xs text-gray-500">Políticas operativas y de garantía de envases retornables de Chosen SoderApp.</p>
+                <div class="bg-gray-50 p-2.5 rounded border text-[11px] text-gray-600 max-h-24 overflow-y-auto">
+                    Los envases prestados (bidones y sifones) son propiedad de la empresa. El cliente se compromete a su correcto uso y devolución en tiempo y forma.
+                </div>
+            </div>
+
+            <!-- 4. Navegador Satelital Predeterminado -->
+            <div class="bg-white p-4 rounded-xl shadow-sm border border-gray-200 space-y-2">
+                <h3 class="text-sm font-bold text-gray-800 flex items-center gap-2">
+                    <i class="fas fa-map-marked-alt text-yellow-600"></i> 4. Navegador Satelital Predeterminado
+                </h3>
+                <p class="text-xs text-gray-500">Elegí con qué aplicación de mapas abrir la hoja de ruta hacia el domicilio del cliente.</p>
+                <select id="sel-navegador-mapa" class="w-full p-2 border rounded-lg text-xs bg-white">
+                    <option value="google-maps">Google Maps (Recomendado)</option>
+                    <option value="waze">Waze</option>
+                    <option value="openstreetmap">OpenStreetMap Nativo</option>
+                </select>
             </div>
 
             <!-- Plantillas Editables de WhatsApp -->
@@ -696,7 +750,7 @@
                 </button>
             </div>
 
-            <!-- Copias de Seguridad (Con accept="*/*" corregido para Google Drive/Android) -->
+            <!-- Copias de Seguridad -->
             <div class="bg-white p-4 rounded-xl shadow-sm border border-gray-200 space-y-3">
                 <h3 class="text-sm font-bold text-gray-800 flex items-center gap-2">
                     <i class="fas fa-database text-green-600"></i> Copias de Seguridad
@@ -780,7 +834,7 @@
     <!-- LÓGICA JS V1.8.6 PRO -->
     <script>
         let appState = {
-            precios: { b20: 3000, b12: 2200, soda: 1800, soda500: 1200, fc: 8000, mesa: 15000 },
+            precios: { b20: 3000, b12: 2200, soda: 1800, packSoda: 10000, soda500: 1200, packSoda500: 13000, fc: 8000, mesa: 15000 },
             comisiones: { b20: 500, b12: 400, soda: 300, soda500: 200, mesa: 2000 },
             galpon: {
                 b20: { llenos: 150, fabrica: 50, rotos: 2 },
@@ -807,6 +861,7 @@
             clienteSeleccionadoId: null,
             tempFotoData: "", tempGpsData: null,
             darkMode: false,
+            facturacionActiva: true,
             tipoMapa: "satelite",
             clientes: [
                 { id: 1, nombre: "Juan Pérez", zona: "Villa Media Agua", direccion: "San Martín 123", tel: "2645158230", dia: "Lunes", tipo: "Cliente Fijo", notas: "Puerta reja verde", estado: "Pendiente", activo: true, gps: { lat: -31.537, lng: -68.525 }, vacios: { b20: 2, b12: 0, soda: 1, soda500: 0 }, deuda: 0, totalHistorico: 15000, preciosPersonalizados: {} }
@@ -894,7 +949,6 @@
             mostrarModal("Nuevo Cliente", "Coordenadas capturadas del mapa. Complete los datos y guarde.");
         }
 
-        // GALPÓN EN AJUSTES
         function fijarUbicacionGalponGPS() {
             if (navigator.geolocation) {
                 navigator.geolocation.getCurrentPosition(pos => {
@@ -942,7 +996,19 @@
             }
         }
 
-        // PLANTILLAS DE WHATSAPP
+        function toggleFacturacionElectronica() {
+            appState.facturacionActiva = !appState.facturacionActiva;
+            const btn = document.getElementById('btn-facturacion-status');
+            if(appState.facturacionActiva) {
+                btn.className = "bg-green-600 text-white px-3 py-1 rounded font-bold";
+                btn.innerText = "Activado";
+            } else {
+                btn.className = "bg-red-600 text-white px-3 py-1 rounded font-bold";
+                btn.innerText = "Desactivado";
+            }
+            guardarStorage();
+        }
+
         function cargarPlantillasWAUI() {
             if(document.getElementById('tpl-no-esta')) {
                 document.getElementById('tpl-no-esta').value = appState.plantillasWA.noEsta;
@@ -1002,7 +1068,6 @@
             guardarStorage();
         }
 
-        // COPIAS DE SEGURIDAD CON ACCEPT=*/* PARA GOOGLE DRIVE
         function exportarBackupJSON() {
             const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(appState));
             const downloadAnchor = document.createElement('a');
@@ -1104,7 +1169,9 @@
             document.getElementById('prc-b20').value = appState.precios.b20;
             document.getElementById('prc-b12').value = appState.precios.b12;
             document.getElementById('prc-soda').value = appState.precios.soda;
+            document.getElementById('prc-pack-soda').value = appState.precios.packSoda || 10000;
             document.getElementById('prc-soda500').value = appState.precios.soda500 || 1200;
+            document.getElementById('prc-pack-soda500').value = appState.precios.packSoda500 || 13000;
             document.getElementById('prc-fc').value = appState.precios.fc;
             document.getElementById('prc-mesa').value = appState.precios.mesa;
         }
@@ -1114,7 +1181,9 @@
                 appState.precios.b20 = parseInt(document.getElementById('prc-b20').value) || 0;
                 appState.precios.b12 = parseInt(document.getElementById('prc-b12').value) || 0;
                 appState.precios.soda = parseInt(document.getElementById('prc-soda').value) || 0;
+                appState.precios.packSoda = parseInt(document.getElementById('prc-pack-soda').value) || 0;
                 appState.precios.soda500 = parseInt(document.getElementById('prc-soda500').value) || 0;
+                appState.precios.packSoda500 = parseInt(document.getElementById('prc-pack-soda500').value) || 0;
                 appState.precios.fc = parseInt(document.getElementById('prc-fc').value) || 0;
                 appState.precios.mesa = parseInt(document.getElementById('prc-mesa').value) || 0;
                 guardarStorage(); 
@@ -1390,7 +1459,6 @@
             calcularRecomendacionCarga();
         }
 
-        // FICHA FLOTANTE DE ATENCIÓN DE CLIENTE
         function abrirFichaCliente(id) {
             const cli = appState.clientes.find(c => c.id === id); if (!cli) return;
             appState.clienteSeleccionadoId = id;
@@ -1434,12 +1502,14 @@
                     </div>
 
                     <hr class="my-2">
-                    <p class="text-xs font-bold text-gray-800">📦 Cantidades A Entregar:</p>
+                    <p class="text-xs font-bold text-gray-800">📦 Cantidades A Entregar (Unidades o Packs):</p>
                     <div class="grid grid-cols-2 gap-2 text-xs">
                         <div><label class="block font-semibold">Bidón 20L:</label><input type="number" id="vta-cant-20" value="0" min="0" class="w-full p-1.5 border rounded" oninput="calcularVenta()"></div>
                         <div><label class="block font-semibold">Bidón 12L:</label><input type="number" id="vta-cant-12" value="0" min="0" class="w-full p-1.5 border rounded" oninput="calcularVenta()"></div>
-                        <div><label class="block font-semibold">Sifones Soda 1L (<span id="lbl-vta-ps1" class="text-blue-700">0 Pk</span>):</label><input type="number" id="vta-cant-soda" value="0" min="0" class="w-full p-1.5 border rounded" oninput="calcularVenta()"></div>
-                        <div><label class="block font-semibold">Sifones Soda 500 (<span id="lbl-vta-ps500" class="text-blue-700">0 Pk</span>):</label><input type="number" id="vta-cant-soda500" value="0" min="0" class="w-full p-1.5 border rounded" oninput="calcularVenta()"></div>
+                        <div><label class="block font-semibold">Soda 1L (Unidades):</label><input type="number" id="vta-cant-soda" value="0" min="0" class="w-full p-1.5 border rounded" oninput="calcularVenta()"></div>
+                        <div><label class="block font-semibold">Packs Soda 1L (x6):</label><input type="number" id="vta-cant-packsoda" value="0" min="0" class="w-full p-1.5 border rounded" oninput="calcularVenta()"></div>
+                        <div><label class="block font-semibold">Soda 500 (Unidades):</label><input type="number" id="vta-cant-soda500" value="0" min="0" class="w-full p-1.5 border rounded" oninput="calcularVenta()"></div>
+                        <div><label class="block font-semibold">Packs Soda 500 (x12):</label><input type="number" id="vta-cant-packsoda500" value="0" min="0" class="w-full p-1.5 border rounded" oninput="calcularVenta()"></div>
                         <div class="col-span-2"><label class="block font-semibold">Venta Dispenser Mesa:</label><input type="number" id="vta-cant-mesa" value="0" min="0" class="w-full p-1.5 border rounded" oninput="calcularVenta()"></div>
                     </div>
 
@@ -1489,7 +1559,9 @@
                 document.getElementById('vta-cant-20').value = 0;
                 document.getElementById('vta-cant-12').value = 0;
                 document.getElementById('vta-cant-soda').value = 0;
+                document.getElementById('vta-cant-packsoda').value = 0;
                 document.getElementById('vta-cant-soda500').value = 0;
+                document.getElementById('vta-cant-packsoda500').value = 0;
                 document.getElementById('vta-cant-mesa').value = 0;
                 calcularVenta();
             }
@@ -1499,15 +1571,19 @@
             const c20 = parseInt(document.getElementById('vta-cant-20').value) || 0;
             const c12 = parseInt(document.getElementById('vta-cant-12').value) || 0;
             const cSoda = parseInt(document.getElementById('vta-cant-soda').value) || 0;
+            const cPackSoda = parseInt(document.getElementById('vta-cant-packsoda').value) || 0;
             const cSoda500 = parseInt(document.getElementById('vta-cant-soda500').value) || 0;
+            const cPackSoda500 = parseInt(document.getElementById('vta-cant-packsoda500').value) || 0;
             const cMesa = parseInt(document.getElementById('vta-cant-mesa').value) || 0;
 
-            if(document.getElementById('lbl-vta-ps1')) {
-                document.getElementById('lbl-vta-ps1').innerText = `${Math.floor(cSoda / 6)} Pk`;
-                document.getElementById('lbl-vta-ps500').innerText = `${Math.floor(cSoda500 / 12)} Pk`;
-            }
+            const total = (c20 * appState.precios.b20) + 
+                          (c12 * appState.precios.b12) + 
+                          (cSoda * appState.precios.soda) + 
+                          (cPackSoda * (appState.precios.packSoda || 10000)) + 
+                          (cSoda500 * (appState.precios.soda500 || 1200)) + 
+                          (cPackSoda500 * (appState.precios.packSoda500 || 13000)) + 
+                          (cMesa * appState.precios.mesa);
 
-            const total = (c20 * appState.precios.b20) + (c12 * appState.precios.b12) + (cSoda * appState.precios.soda) + (cSoda500 * (appState.precios.soda500 || 1200)) + (cMesa * appState.precios.mesa);
             document.getElementById('vta-total').value = total; 
             document.getElementById('vta-pago').value = total;
         }
@@ -1524,8 +1600,14 @@
             const c20 = parseInt(document.getElementById('vta-cant-20').value) || 0;
             const c12 = parseInt(document.getElementById('vta-cant-12').value) || 0;
             const cSoda = parseInt(document.getElementById('vta-cant-soda').value) || 0;
+            const cPackSoda = parseInt(document.getElementById('vta-cant-packsoda').value) || 0;
             const cSoda500 = parseInt(document.getElementById('vta-cant-soda500').value) || 0;
+            const cPackSoda500 = parseInt(document.getElementById('vta-cant-packsoda500').value) || 0;
             const cMesa = parseInt(document.getElementById('vta-cant-mesa').value) || 0;
+
+            // Físicamente los packs restan unidades individuales al camión
+            const totalSodaFisica = cSoda + (cPackSoda * 6);
+            const totalSoda500Fisica = cSoda500 + (cPackSoda500 * 12);
 
             const dev20 = parseInt(document.getElementById('vta-dev-20').value) || 0;
             const dev12 = parseInt(document.getElementById('vta-dev-12').value) || 0;
@@ -1539,14 +1621,14 @@
             if (!cli.vacios) cli.vacios = { b20: 0, b12: 0, soda: 0, soda500: 0 };
             cli.vacios.b20 = Math.max(0, (cli.vacios.b20 || 0) + (c20 - dev20));
             cli.vacios.b12 = Math.max(0, (cli.vacios.b12 || 0) + (c12 - dev12));
-            cli.vacios.soda = Math.max(0, (cli.vacios.soda || 0) + (cSoda - devSoda));
-            cli.vacios.soda500 = Math.max(0, (cli.vacios.soda500 || 0) + (cSoda500 - devSoda500));
+            cli.vacios.soda = Math.max(0, (cli.vacios.soda || 0) + (totalSodaFisica - devSoda));
+            cli.vacios.soda500 = Math.max(0, (cli.vacios.soda500 || 0) + (totalSoda500Fisica - devSoda500));
 
             appState.camionEnVivo.llenos.b20 = Math.max(0, appState.camionEnVivo.llenos.b20 - c20);
             appState.camionEnVivo.llenos.b12 = Math.max(0, appState.camionEnVivo.llenos.b12 - c12);
-            appState.camionEnVivo.llenos.soda = Math.max(0, appState.camionEnVivo.llenos.soda - cSoda);
+            appState.camionEnVivo.llenos.soda = Math.max(0, appState.camionEnVivo.llenos.soda - totalSodaFisica);
             if(!appState.camionEnVivo.llenos.soda500) appState.camionEnVivo.llenos.soda500 = 0;
-            appState.camionEnVivo.llenos.soda500 = Math.max(0, appState.camionEnVivo.llenos.soda500 - cSoda500);
+            appState.camionEnVivo.llenos.soda500 = Math.max(0, appState.camionEnVivo.llenos.soda500 - totalSoda500Fisica);
             appState.camionEnVivo.llenos.mesa = Math.max(0, appState.camionEnVivo.llenos.mesa - cMesa);
 
             appState.camionEnVivo.vacios.b20 += dev20;
@@ -1563,15 +1645,9 @@
 
             appState.ventasDelDia.b20 += c20; 
             appState.ventasDelDia.b12 += c12;
-            appState.ventasDelDia.soda += cSoda;
-            appState.ventasDelDia.soda500 = (appState.ventasDelDia.soda500 || 0) + cSoda500;
+            appState.ventasDelDia.soda += totalSodaFisica;
+            appState.ventasDelDia.soda500 = (appState.ventasDelDia.soda500 || 0) + totalSoda500Fisica;
             appState.ventasDelDia.mesa += cMesa;
-
-            appState.ventasSemana.b20 += c20; 
-            appState.ventasSemana.b12 += c12;
-            appState.ventasSemana.soda += cSoda;
-            appState.ventasSemana.soda500 = (appState.ventasSemana.soda500 || 0) + cSoda500;
-            appState.ventasSemana.mesa += cMesa;
 
             guardarStorage();
             actualizarStockCamionEnVivoUI();
@@ -1580,7 +1656,6 @@
             actualizarEnvasesClientesTotalesUI();
             cerrarModal();
 
-            // Gatillo de WhatsApp automático si no está o volver
             if(estadoVisita === 'NoEstaba' && cli.tel) {
                 preguntarEnvioWhatsApp(cli.tel, appState.plantillasWA.noEsta);
             } else if(estadoVisita === 'Volver' && cli.tel) {
@@ -1658,7 +1733,6 @@
             }
         }
 
-        // GPS PACIENTE DE ALTA PRECISIÓN (Punto clave)
         function capturarGpsClienteEnVivo() {
             if (!navigator.geolocation) {
                 mostrarModal('Error', 'Geolocalización no soportada por tu navegador.');
@@ -1675,7 +1749,6 @@
                 document.getElementById('gps-status-txt').innerText = `🛰️ Precisión: ~${acc}m (${lat.toFixed(4)}, ${lng.toFixed(4)})`;
                 appState.tempGpsData = { lat, lng };
                 
-                // Habilita el botón manual en cuanto baje de rango o de inmediato para elegir casas con retiro de 10-15m
                 document.getElementById('btn-guardar-gps-manual').classList.remove('hidden');
 
                 if (acc <= 15) {
@@ -1780,7 +1853,6 @@
             appState.tempFotoData = ''; appState.tempGpsData = null;
         }
 
-        // PADRÓN CON FILTRO INDEPENDIENTE POR DÍA
         function renderPadronClientes() {
             const diaFiltro = document.getElementById('filtro-dia-padron') ? document.getElementById('filtro-dia-padron').value : 'TODOS';
             const query = (document.getElementById('buscador-clientes').value || "").toLowerCase();
@@ -1820,6 +1892,7 @@
                         <div class="flex flex-col gap-1">
                             <button onclick="editarCliente(${c.id})" class="bg-blue-600 text-white px-2 py-1 rounded font-bold">Editar</button>
                             <button onclick="toggleBajaCliente(${c.id})" class="${esActivo ? 'bg-yellow-600' : 'bg-green-600'} text-white px-2 py-1 rounded font-bold">${esActivo ? 'Baja' : 'Activar'}</button>
+                            <button onclick="eliminarClienteDefinitivo(${c.id})" class="bg-red-600 text-white px-2 py-1 rounded font-bold">Eliminar</button>
                         </div>
                     </div>`;
             });
@@ -1834,6 +1907,18 @@
                 renderPadronClientes();
                 renderMetricasClientes();
                 actualizarEnvasesClientesTotalesUI();
+            }
+        }
+
+        function eliminarClienteDefinitivo(id) {
+            if(confirm("¿Está seguro de eliminar permanentemente este cliente del padrón?")) {
+                appState.clientes = appState.clientes.filter(c => c.id !== id);
+                guardarStorage();
+                renderClientesRuta();
+                renderPadronClientes();
+                renderMetricasClientes();
+                actualizarEnvasesClientesTotalesUI();
+                mostrarModal("Eliminado", "El cliente fue eliminado del sistema.");
             }
         }
 
