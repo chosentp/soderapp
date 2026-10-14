@@ -4,7 +4,7 @@
     <link rel="manifest" href="manifest.json">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Chosen 👑 SoderApp v1.8.5 Satelital Pro</title>
+    <title>Chosen 👑 SoderApp Pro v1.8.6</title>
     <!-- Tailwind CSS -->
     <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
     <!-- Leaflet CSS para Mapas -->
@@ -15,6 +15,7 @@
         .tab-content { display: none; }
         .tab-content.active { display: block; }
         #mapa-calles-real { height: 380px; z-index: 1; border-radius: 0.5rem; cursor: crosshair; }
+        #mapa-galpon-real { height: 260px; z-index: 1; border-radius: 0.5rem; }
         .preview-img { width: 100%; max-height: 140px; object-fit: cover; border-radius: 6px; border: 1px solid #cbd5e1; }
         
         /* Bloqueo Pull-To-Refresh y Scroll Elástico */
@@ -48,7 +49,7 @@
             background-color: #1e293b !important;
             border-color: #334155 !important;
         }
-        body.dark-mode input, body.dark-mode select {
+        body.dark-mode input, body.dark-mode select, body.dark-mode textarea {
             background-color: #334155 !important;
             color: #ffffff !important;
             border-color: #475569 !important;
@@ -67,7 +68,7 @@
     <!-- Splash Screen Táctil -->
     <div id="splash-screen" onclick="cerrarSplash()" class="fixed inset-0 z-50 bg-cover bg-center flex flex-col justify-end pb-16 px-6 cursor-pointer" style="background-image: url('1000638284.jpg');">
         <div class="w-full max-w-sm mx-auto bg-blue-600 hover:bg-blue-700 text-white font-bold py-3.5 px-6 rounded-xl text-center text-base shadow-2xl transition transform active:scale-95 border border-blue-400">
-            <span>🚀 TOCA AQUÍ PARA INGRESAR</span>
+            <span>🚀 TOCA AQUÍ PARA INGRESAR (v1.8.6 Pro)</span>
         </div>
     </div>
 
@@ -75,6 +76,7 @@
     <header class="bg-gray-900 text-white px-4 py-2 shadow-md sticky top-0 z-40 flex justify-between items-center border-b border-gray-800">
         <div class="flex items-center space-x-2">
             <img src="1000638287.png" alt="Chosen SoderApp" class="h-10 object-contain">
+            <span class="text-xs bg-blue-600 text-white px-2 py-0.5 rounded font-bold">v1.8.6 Pro</span>
         </div>
         <div class="flex items-center space-x-3">
             <button onclick="switchTab('config')" class="text-yellow-400 hover:text-yellow-300 text-2xl px-2 py-1 focus:outline-none" title="Configuración">
@@ -116,16 +118,13 @@
                     <h3 class="text-xs sm:text-sm font-bold text-yellow-300 flex items-center gap-2">
                         <i class="fas fa-calculator"></i> 💡 Recomendación de Carga Sugerida para hoy
                     </h3>
-                    <button onclick="fijarUbicacionGalponGPS()" class="bg-yellow-500 hover:bg-yellow-600 text-black text-xs font-bold py-1 px-2.5 rounded shadow">
-                        📍 Fijar Galpón GPS
-                    </button>
                 </div>
                 <div id="panel-recomendacion-carga" class="text-xs space-y-1 text-gray-200">
                     Calculando sugerencia según clientes del día...
                 </div>
             </div>
 
-            <!-- Panel Stock en Vivo Camión -->
+            <!-- Panel Stock en Vivo Camión (Con Packs de Soda) -->
             <div class="bg-gray-900 text-white p-4 rounded-xl shadow-md border-2 border-blue-500">
                 <h3 class="text-sm font-bold text-blue-400 border-b border-gray-700 pb-2 mb-3 flex items-center gap-2">
                     <i class="fas fa-truck text-blue-400"></i> Stock Actual en Camión (En Vivo)
@@ -133,11 +132,10 @@
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-3 text-xs sm:text-sm">
                     <div class="bg-gray-800 p-2.5 rounded-lg border border-gray-700">
                         <span class="text-green-400 font-bold block mb-1">🟢 LLENOS RESTANTES:</span>
-                        <div class="grid grid-cols-2 gap-1 text-gray-200">
-                            <div>20L: <strong id="vivo-lleno-20" class="text-green-400 font-bold">0</strong></div>
-                            <div>12L: <strong id="vivo-lleno-12" class="text-green-400 font-bold">0</strong></div>
-                            <div>Soda 1L: <strong id="vivo-lleno-soda" class="text-green-400 font-bold">0</strong></div>
-                            <div>Soda 500ml: <strong id="vivo-lleno-soda500" class="text-green-400 font-bold">0</strong></div>
+                        <div class="grid grid-cols-1 gap-1 text-gray-200">
+                            <div>20L: <strong id="vivo-lleno-20" class="text-green-400 font-bold">0</strong> | 12L: <strong id="vivo-lleno-12" class="text-green-400 font-bold">0</strong></div>
+                            <div>Soda 1L: <strong id="vivo-lleno-soda" class="text-green-400 font-bold">0</strong> (<span id="pack-vivo-soda" class="text-yellow-300 font-bold">0</span> Packs de 6)</div>
+                            <div>Soda 500ml: <strong id="vivo-lleno-soda500" class="text-green-400 font-bold">0</strong> (<span id="pack-vivo-soda500" class="text-yellow-300 font-bold">0</span> Packs de 12)</div>
                             <div>Disp. Mesa: <strong id="vivo-lleno-mesa" class="text-green-400 font-bold">0</strong></div>
                         </div>
                     </div>
@@ -195,7 +193,7 @@
                 </div>
             </div>
 
-            <!-- Mapa Satelital Dual -->
+            <!-- Mapa Satelital Dual (Zoom Máximo habilitado al 19) -->
             <div class="bg-white p-4 rounded-xl shadow-sm border border-gray-200">
                 <div class="flex items-center justify-between mb-2">
                     <h3 class="text-sm font-bold text-gray-800 flex items-center gap-2">
@@ -206,15 +204,6 @@
                     </button>
                 </div>
                 <p class="text-[11px] text-gray-500 mb-2">💡 <b>Tip:</b> Hacé <b>doble clic</b> en el mapa para abrir el menú de alta o reubicación de clientes.</p>
-                <div class="flex flex-wrap gap-2 text-xs font-semibold mb-3 bg-gray-50 p-2 rounded-lg border">
-                    <span class="flex items-center gap-1"><span class="w-3 h-3 rounded-full bg-orange-500 inline-block"></span> Pendiente</span>
-                    <span class="flex items-center gap-1"><span class="w-3 h-3 rounded-full bg-green-500 inline-block"></span> Entregado</span>
-                    <span class="flex items-center gap-1"><span class="w-3 h-3 rounded-full bg-red-500 inline-block"></span> No Estaba</span>
-                    <span class="flex items-center gap-1"><span class="w-3 h-3 rounded-full bg-yellow-500 inline-block"></span> Volver Después</span>
-                    <span class="flex items-center gap-1"><span class="w-3 h-3 rounded-full bg-gray-400 inline-block"></span> No Compró</span>
-                    <span class="flex items-center gap-1"><span class="w-3 h-3 rounded-full bg-blue-500 inline-block"></span> Posible Cliente</span>
-                    <span class="flex items-center gap-1"><span class="w-3 h-3 rounded-full bg-purple-600 inline-block"></span> Cliente Nuevo</span>
-                </div>
                 <div id="mapa-calles-real"></div>
             </div>
 
@@ -252,15 +241,15 @@
 
             <div class="flex gap-2">
                 <button onclick="toggleSeccionCliente('form')" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg text-xs shadow flex items-center gap-1">
-                    <i class="fas fa-user-plus"></i> Agregar / Editar Cliente (o Posible)
+                    <i class="fas fa-user-plus"></i> Agregar / Editar Cliente
                 </button>
                 <button onclick="toggleSeccionCliente('padron')" class="bg-gray-700 hover:bg-gray-800 text-white font-bold py-2 px-4 rounded-lg text-xs shadow flex items-center gap-1">
                     <i class="fas fa-list-alt"></i> Padrón General
                 </button>
             </div>
 
-            <div id="sec-form-cliente" class="bg-white p-4 rounded-xl shadow-md border-2 border-blue-500">
-                <h3 class="text-sm font-bold text-blue-900 mb-3" id="titulo-form-cliente">➕ Alta / Edición de Cliente / Posible Cliente</h3>
+            <div id="sec-form-cliente" class="bg-white p-4 rounded-xl shadow-md border-2 border-blue-500 hidden">
+                <h3 class="text-sm font-bold text-blue-900 mb-3" id="titulo-form-cliente">➕ Alta / Edición de Cliente</h3>
                 <input type="hidden" id="edit-cliente-id" value="">
                 
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
@@ -315,7 +304,7 @@
                     </div>
                     <div class="sm:col-span-2">
                         <label class="block font-bold text-gray-700 mb-1">Notas Tácticas:</label>
-                        <input type="text" id="alta-notas" placeholder="Ej. Puerta reja azul, pasar el domingo..." class="w-full p-2 border rounded-lg">
+                        <input type="text" id="alta-notas" placeholder="Ej. Puerta reja azul..." class="w-full p-2 border rounded-lg">
                     </div>
                     
                     <div class="sm:col-span-2 bg-yellow-50 p-2.5 rounded-lg border border-yellow-200">
@@ -328,19 +317,32 @@
                         </div>
                     </div>
 
-                    <div>
-                        <label class="block font-bold text-gray-700 mb-1">Foto de Fachada (Galería o Cámara):</label>
-                        <input type="file" id="alta-foto-input" accept="image/*" class="hidden" onchange="previewFotoCliente(event)">
-                        <button type="button" onclick="document.getElementById('alta-foto-input').click()" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-3 rounded-lg text-xs shadow flex items-center justify-center gap-1 mb-2">
-                            <i class="fas fa-camera"></i> 📷 Seleccionar Foto / Cámara
-                        </button>
+                    <!-- Doble Opción: Cámara o Galería -->
+                    <div class="sm:col-span-2">
+                        <label class="block font-bold text-gray-700 mb-1">Foto de Fachada (Cámara o Galería):</label>
+                        <div class="grid grid-cols-2 gap-2 mb-2">
+                            <button type="button" onclick="document.getElementById('input-camara-directa').click()" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-3 rounded-lg text-xs shadow flex items-center justify-center gap-1">
+                                <i class="fas fa-camera"></i> 📷 Sacar Foto
+                            </button>
+                            <button type="button" onclick="document.getElementById('input-galeria-directa').click()" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-3 rounded-lg text-xs shadow flex items-center justify-center gap-1">
+                                <i class="fas fa-image"></i> 🖼️ Galería
+                            </button>
+                        </div>
+                        <input type="file" id="input-camara-directa" accept="image/*" capture="environment" class="hidden" onchange="previewFotoCliente(event)">
+                        <input type="file" id="input-galeria-directa" accept="image/*" class="hidden" onchange="previewFotoCliente(event)">
                         <img id="alta-foto-preview" class="preview-img hidden mt-1" alt="Vista previa fachada">
                     </div>
-                    <div class="flex flex-col justify-end">
-                        <button type="button" onclick="capturarGpsClienteEnVivo()" class="bg-gray-700 hover:bg-gray-800 text-white font-bold py-2 px-3 rounded-lg text-xs shadow mb-1">
+
+                    <!-- GPS Paciente en Vivo -->
+                    <div class="sm:col-span-2 bg-gray-50 p-2.5 rounded-lg border">
+                        <label class="block font-bold text-gray-700 mb-1">Ubicación GPS Puerta:</label>
+                        <button type="button" onclick="capturarGpsClienteEnVivo()" class="w-full bg-yellow-600 hover:bg-yellow-700 text-white font-bold py-2 px-3 rounded-lg text-xs shadow mb-1">
                             📍 Capturar GPS Puerta en Vivo
                         </button>
-                        <small id="gps-status-txt" class="text-gray-500 font-semibold">GPS: No capturado</small>
+                        <div id="gps-status-box" class="bg-white p-2 rounded border text-xs flex justify-between items-center mt-1">
+                            <span id="gps-status-txt" class="text-gray-600 font-semibold">GPS: No capturado</span>
+                            <button type="button" id="btn-guardar-gps-manual" onclick="confirmarGPSActual()" class="bg-green-600 text-white px-2 py-1 rounded font-bold hidden">Guardar</button>
+                        </div>
                     </div>
                 </div>
 
@@ -348,17 +350,38 @@
                     <button type="button" onclick="guardarRegistroClienteConConfirmacion()" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2.5 px-4 rounded-lg text-xs sm:text-sm shadow">
                         💾 Guardar / Actualizar Cliente
                     </button>
-                    <button type="button" id="btn-cancelar-edit" onclick="limpiarFormCliente()" class="w-full bg-gray-400 hover:bg-gray-500 text-white font-bold py-2 px-4 rounded-lg text-xs hidden">
-                        Cancelar Edición
+                    <button type="button" onclick="toggleSeccionCliente('padron')" class="w-full bg-gray-400 hover:bg-gray-500 text-white font-bold py-2 px-4 rounded-lg text-xs">
+                        Volver al Padrón
                     </button>
                 </div>
             </div>
 
+            <!-- Padrón de Clientes con Filtro por Día -->
             <div id="sec-padron-cliente" class="bg-white p-4 rounded-xl shadow-sm border border-gray-200">
                 <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 mb-3">
                     <h3 class="text-sm font-bold text-gray-800"><i class="fas fa-users text-blue-600"></i> Padrón General de Clientes (1000+)</h3>
-                    <input type="text" id="buscador-clientes" placeholder="🔍 Buscar cliente, teléfono, zona..." class="p-2 border rounded-lg text-xs w-full sm:w-64" oninput="renderPadronClientes()">
                 </div>
+                
+                <!-- Selector Desplegable por Día (Punto clave) -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 mb-3">
+                    <div>
+                        <label class="block font-bold text-gray-700 text-xs mb-1">Filtrar por Día de Reparto:</label>
+                        <select id="filtro-dia-padron" class="w-full p-2 border rounded-lg text-xs bg-white" onchange="renderPadronClientes()">
+                            <option value="TODOS">Todos los Días</option>
+                            <option value="Lunes">Lunes</option>
+                            <option value="Martes">Martes</option>
+                            <option value="Miércoles">Miércoles</option>
+                            <option value="Jueves">Jueves</option>
+                            <option value="Viernes">Viernes</option>
+                            <option value="Sábado">Sábado</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block font-bold text-gray-700 text-xs mb-1">Buscar por Nombre o Dirección:</label>
+                        <input type="text" id="buscador-clientes" placeholder="🔍 Escribí nombre o dirección..." class="p-2 border rounded-lg text-xs w-full" oninput="renderPadronClientes()">
+                    </div>
+                </div>
+
                 <div id="lista-padron-clientes" class="space-y-2 max-h-96 overflow-y-auto pr-1"></div>
             </div>
         </div>
@@ -405,8 +428,14 @@
                         <div class="space-y-2">
                             <div><label class="block font-semibold">Llenos 20L:</label><input type="number" id="stk-galpon-20" class="w-full p-1.5 border rounded"></div>
                             <div><label class="block font-semibold">Llenos 12L:</label><input type="number" id="stk-galpon-12" class="w-full p-1.5 border rounded"></div>
-                            <div><label class="block font-semibold">Llenos Soda 1L:</label><input type="number" id="stk-galpon-soda" class="w-full p-1.5 border rounded"></div>
-                            <div><label class="block font-semibold">Llenos Soda 500ml:</label><input type="number" id="stk-galpon-soda500" class="w-full p-1.5 border rounded"></div>
+                            <div>
+                                <label class="block font-semibold">Llenos Soda 1L (<span id="lbl-pack-s1l" class="text-blue-700">0 Packs</span>):</label>
+                                <input type="number" id="stk-galpon-soda" class="w-full p-1.5 border rounded" oninput="actualizarConteoPacksGalpon()">
+                            </div>
+                            <div>
+                                <label class="block font-semibold">Llenos Soda 500ml (<span id="lbl-pack-s500" class="text-blue-700">0 Packs</span>):</label>
+                                <input type="number" id="stk-galpon-soda500" class="w-full p-1.5 border rounded" oninput="actualizarConteoPacksGalpon()">
+                            </div>
                             <div><label class="block font-semibold">Disp. Eléctricos (F/C):</label><input type="number" id="stk-galpon-fc" class="w-full p-1.5 border rounded"></div>
                             <div><label class="block font-semibold">Disp. de Mesa:</label><input type="number" id="stk-galpon-mesa" class="w-full p-1.5 border rounded"></div>
                         </div>
@@ -468,13 +497,6 @@
                         <div><label class="block">Vacíos 12L:</label><input type="number" id="vac-ing-vac-12" value="0" class="w-full p-1 border rounded"></div>
                         <div><label class="block">Soda Vacía 1L:</label><input type="number" id="vac-ing-vac-soda" value="0" class="w-full p-1 border rounded"></div>
                         <div><label class="block">Soda Vacía 500ml:</label><input type="number" id="vac-ing-vac-soda500" value="0" class="w-full p-1 border rounded"></div>
-                    </div>
-
-                    <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs">
-                        <div><label class="block text-red-700">Rotos 20L:</label><input type="number" id="pinch-20" value="0" class="w-full p-1 border rounded bg-red-50"></div>
-                        <div><label class="block text-red-700">Rotos 12L:</label><input type="number" id="pinch-12" value="0" class="w-full p-1 border rounded bg-red-50"></div>
-                        <div><label class="block text-red-700">Soda Rota 1L:</label><input type="number" id="pinch-soda" value="0" class="w-full p-1 border rounded bg-red-50"></div>
-                        <div><label class="block text-red-700">Soda Rota 500ml:</label><input type="number" id="pinch-soda500" value="0" class="w-full p-1 border rounded bg-red-50"></div>
                     </div>
 
                     <button onclick="procesarVaciadoRetornoConConfirmacion()" class="mt-3 w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-3 rounded-lg text-xs shadow">
@@ -616,39 +638,52 @@
                 </button>
                 <div id="historial-gastos-lista" class="mt-3 space-y-1"></div>
             </div>
-
-            <div class="bg-white p-4 rounded-xl shadow-sm border border-gray-200">
-                <h3 class="text-sm font-bold text-gray-800 mb-2"><i class="fas fa-history text-indigo-600"></i> Historial de Cierres Semanales</h3>
-                <div id="historial-cierres-semanales" class="text-xs space-y-1 text-gray-600">No hay cierres semanales aún.</div>
-            </div>
         </div>
 
-        <!-- TAB 6: GRABADOR GPS DE TRAZA -->
-        <div id="tab-grabador" class="tab-content space-y-4">
-            <div class="bg-white p-4 rounded-xl shadow-md border-2 border-red-500 text-center">
-                <div class="flex justify-between items-center mb-3">
-                    <h2 class="text-base font-bold text-red-700 flex items-center gap-2">
-                        <i class="fas fa-broadcast-tower text-red-600"></i> Grabador de Traza GPS de Reparto
-                    </h2>
-                    <span id="tag-grabando" class="hidden text-xs bg-red-600 text-white px-2 py-0.5 rounded-full font-bold animate-pulse">🔴 Grabando...</span>
-                </div>
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs mb-3">
-                    <input type="text" id="nombre-recorrido-nuevo" placeholder="Nombre (Ej. Sarmiento Calle Larga)" class="p-2 border rounded-lg text-left">
-                    <button id="btn-iniciar-rec" onclick="toggleGrabacionGPS()" class="bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 rounded-lg shadow">
-                        🔴 Iniciar Grabación GPS
+        <!-- TAB 6: CONFIGURACIÓN & ACERCA DE (Galpón y Plantillas WhatsApp integradas) -->
+        <div id="tab-config" class="tab-content space-y-4">
+            
+            <!-- Configuración del Galpón (Movido aquí desde la pantalla principal) -->
+            <div class="bg-white p-4 rounded-xl shadow-sm border border-gray-200 space-y-3">
+                <h3 class="text-sm font-bold text-gray-800 flex items-center gap-2">
+                    <i class="fas fa-warehouse text-blue-600"></i> Configuración de Galpón / Depósito (Origen)
+                </h3>
+                <p class="text-xs text-gray-500">Defina el punto de partida del galpón mediante GPS en vivo o marcando directamente en el mapa.</p>
+                <div class="grid grid-cols-2 gap-2">
+                    <button onclick="fijarUbicacionGalponGPS()" class="bg-yellow-500 hover:bg-yellow-600 text-black text-xs font-bold py-2 px-3 rounded-lg shadow">
+                        📍 Fijar Galpón GPS en Vivo
+                    </button>
+                    <button onclick="toggleMapaGalponSettings()" class="bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold py-2 px-3 rounded-lg shadow">
+                        🗺️ Marcar Galpón en Mapa
                     </button>
                 </div>
-                <p class="text-xs text-gray-500">Puntos GPS tomados: <strong id="cant-puntos-gps" class="text-gray-800">0</strong></p>
+                <div id="status-galpon-settings" class="text-xs font-bold text-gray-700 bg-gray-50 p-2 rounded border">
+                    Galpón actual: No configurado
+                </div>
+                <div id="contenedor-mapa-galpon" class="hidden space-y-2">
+                    <p class="text-[11px] text-gray-500">Hacé clic en el mapa para establecer la ubicación exacta del galpón:</p>
+                    <div id="mapa-galpon-real"></div>
+                </div>
             </div>
 
-            <div class="bg-white p-4 rounded-xl shadow-sm border border-gray-200">
-                <h3 class="text-sm font-bold text-gray-800 mb-3"><i class="fas fa-route text-blue-600"></i> Recorridos Guardados</h3>
-                <div id="lista-recorridos-guardados" class="space-y-2"></div>
+            <!-- Plantillas Editables de WhatsApp -->
+            <div class="bg-white p-4 rounded-xl shadow-sm border border-gray-200 space-y-3">
+                <h3 class="text-sm font-bold text-gray-800 flex items-center gap-2">
+                    <i class="fab fa-whatsapp text-green-600"></i> Plantillas de Mensajes de WhatsApp
+                </h3>
+                <div class="space-y-2 text-xs">
+                    <div>
+                        <label class="block font-bold text-gray-700 mb-1">Plantilla cuando "No está":</label>
+                        <textarea id="tpl-no-esta" rows="2" class="w-full p-2 border rounded-lg" onchange="guardarPlantillasWA()"></textarea>
+                    </div>
+                    <div>
+                        <label class="block font-bold text-gray-700 mb-1">Plantilla cuando "Volver a pasar":</label>
+                        <textarea id="tpl-volver" rows="2" class="w-full p-2 border rounded-lg" onchange="guardarPlantillasWA()"></textarea>
+                    </div>
+                </div>
             </div>
-        </div>
 
-        <!-- TAB 7: CONFIGURACIÓN & ACERCA DE -->
-        <div id="tab-config" class="tab-content space-y-4">
+            <!-- Modo Oscuro -->
             <div class="bg-white p-4 rounded-xl shadow-sm border border-gray-200 flex justify-between items-center">
                 <div>
                     <h3 class="text-sm font-bold text-gray-800 flex items-center gap-2">
@@ -661,6 +696,7 @@
                 </button>
             </div>
 
+            <!-- Copias de Seguridad (Con accept="*/*" corregido para Google Drive/Android) -->
             <div class="bg-white p-4 rounded-xl shadow-sm border border-gray-200 space-y-3">
                 <h3 class="text-sm font-bold text-gray-800 flex items-center gap-2">
                     <i class="fas fa-database text-green-600"></i> Copias de Seguridad
@@ -673,7 +709,7 @@
                     <button onclick="document.getElementById('input-import-json').click()" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2.5 px-4 rounded-lg shadow flex items-center justify-center gap-2">
                         <i class="fas fa-file-import"></i> Importar Datos
                     </button>
-                    <input type="file" id="input-import-json" accept=".json" class="hidden" onchange="importarBackupJSON(event)">
+                    <input type="file" id="input-import-json" accept="*/*" class="hidden" onchange="importarBackupJSON(event)">
                 </div>
             </div>
 
@@ -681,8 +717,8 @@
             <div class="rounded-2xl shadow-xl overflow-hidden text-white bg-about-waves border border-blue-500/30">
                 <div class="p-6 space-y-4">
                     <div class="text-center space-y-1">
-                        <span class="bg-yellow-500 text-black px-3 py-0.5 rounded-full text-xs font-bold uppercase tracking-wide">Versión 1.8.5 Pro</span>
-                        <h2 class="text-2xl font-extrabold text-yellow-300">Chosen SoderApp</h2>
+                        <span class="bg-yellow-500 text-black px-3 py-0.5 rounded-full text-xs font-bold uppercase tracking-wide">Versión 1.8.6 Pro</span>
+                        <h2 class="text-2xl font-extrabold text-yellow-300">Chosen SoderApp Pro</h2>
                         <p class="text-xs text-gray-200">Sistema de Control Total Satelital & Gestión de Soda y Agua</p>
                     </div>
 
@@ -719,8 +755,8 @@
         <button onclick="switchTab('finanzas')" class="nav-btn flex flex-col items-center text-gray-500 font-semibold" id="nav-finanzas">
             <i class="fas fa-wallet text-lg"></i><span>Caja</span>
         </button>
-        <button onclick="switchTab('grabador')" class="nav-btn flex flex-col items-center text-gray-500 font-semibold" id="nav-grabador">
-            <i class="fas fa-satellite text-lg"></i><span>GPS</span>
+        <button onclick="switchTab('config')" class="nav-btn flex flex-col items-center text-gray-500 font-semibold" id="nav-config">
+            <i class="fas fa-cog text-lg"></i><span>Ajustes</span>
         </button>
     </nav>
 
@@ -741,7 +777,7 @@
     <!-- Leaflet JS -->
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
-    <!-- LÓGICA JS 1.8.5 PRO -->
+    <!-- LÓGICA JS V1.8.6 PRO -->
     <script>
         let appState = {
             precios: { b20: 3000, b12: 2200, soda: 1800, soda500: 1200, fc: 8000, mesa: 15000 },
@@ -754,8 +790,8 @@
                 fc: { llenos: 10, fabrica: 2 },
                 mesa: { llenos: 5 }
             },
-            galponGps: { lat: -31.982, lng: -68.433 },
-            mapState: { lat: -31.982, lng: -68.433, zoom: 16 },
+            galponGps: { lat: -31.5372, lng: -68.5252 },
+            mapState: { lat: -31.5372, lng: -68.5252, zoom: 19 },
             camionEnVivo: {
                 llenos: { b20: 0, b12: 0, soda: 0, soda500: 0, mesa: 0 },
                 vacios: { b20: 0, b12: 0, soda: 0, soda500: 0 }
@@ -763,21 +799,24 @@
             ventasDelDia: { b20: 0, b12: 0, soda: 0, soda500: 0, mesa: 0 },
             ventasSemana: { b20: 0, b12: 0, soda: 0, soda500: 0, mesa: 0 },
             finanzas: { efectivo: 0, transferencia: 0, gastos: [] },
-            historialCierresSemanales: [],
+            plantillasWA: {
+                noEsta: "Hola! Pasamos por tu domicilio y no te encontramos. Dejanos un mensaje si querés que volvamos a pasar.",
+                volver: "Hola! Pasamos temprano por tu casa. En un rato volvemos a dar una vuelta por tu zona."
+            },
             estadoRuta: "Detenido",
             clienteSeleccionadoId: null,
             tempFotoData: "", tempGpsData: null,
             darkMode: false,
             tipoMapa: "satelite",
             clientes: [
-                { id: 1, nombre: "Juan Pérez", zona: "Villa Media Agua", direccion: "Calle Barboza s/n", tel: "2645123456", dia: "Lunes", tipo: "Cliente Fijo", notas: "Puerta reja verde", estado: "Pendiente", activo: true, gps: { lat: -31.9800, lng: -68.4320 }, vacios: { b20: 2, b12: 0, soda: 1, soda500: 0 }, deuda: 0, totalHistorico: 15000, preciosPersonalizados: {} },
-                { id: 2, nombre: "María Gómez", zona: "Los Berros - Parte Alta", direccion: "Ruta 40", tel: "2644987654", dia: "Lunes", tipo: "Posible Cliente", notas: "Al lado del almacén", estado: "Pendiente", activo: true, gps: { lat: -31.9500, lng: -68.4100 }, vacios: { b20: 0, b12: 0, soda: 0, soda500: 0 }, deuda: 0, totalHistorico: 0, preciosPersonalizados: {} }
+                { id: 1, nombre: "Juan Pérez", zona: "Villa Media Agua", direccion: "San Martín 123", tel: "2645158230", dia: "Lunes", tipo: "Cliente Fijo", notas: "Puerta reja verde", estado: "Pendiente", activo: true, gps: { lat: -31.537, lng: -68.525 }, vacios: { b20: 2, b12: 0, soda: 1, soda500: 0 }, deuda: 0, totalHistorico: 15000, preciosPersonalizados: {} }
             ],
-            historialCargas: [],
-            recorridosGrabados: []
+            historialCargas: []
         };
 
         let mapLeaflet = null;
+        let mapGalpon = null;
+        let markerGalpon = null;
         let mapMarkers = [];
         let layerSatelite = null;
         let layerCalles = null;
@@ -789,7 +828,6 @@
         }
 
         async function initApp() {
-            // Persistencia de almacenamiento navegador
             if (navigator.storage && navigator.storage.persist) {
                 await navigator.storage.persist();
             }
@@ -798,6 +836,7 @@
             if (appState.darkMode) document.body.classList.add('dark-mode');
             cargarInputsPrecios();
             cargarInputsComisiones();
+            cargarPlantillasWAUI();
             initMapaLeaflet();
             renderClientesRuta();
             renderPadronClientes();
@@ -806,16 +845,15 @@
             actualizarStockCamionEnVivoUI();
             actualizarFinanzasUI();
             renderHistorialCargas();
-            renderRecorridosGuardados();
             actualizarEstadoRutaUI();
             actualizarEnvasesClientesTotalesUI();
             calcularRecomendacionCarga();
-            cargarHistorialCierresSemanalesUI();
+            actualizarEstadoGalponUI();
         }
 
         function initMapaLeaflet() {
-            const ms = appState.mapState || { lat: -31.982, lng: -68.433, zoom: 16 };
-            mapLeaflet = L.map('mapa-calles-real').setView([ms.lat, ms.lng], ms.zoom);
+            const ms = appState.mapState || { lat: -31.5372, lng: -68.5252, zoom: 19 };
+            mapLeaflet = L.map('mapa-calles-real', { maxZoom: 19 }).setView([ms.lat, ms.lng], ms.zoom);
             
             layerSatelite = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
                 maxZoom: 19, attribution: '© Esri'
@@ -843,92 +881,79 @@
             });
 
             mapLeaflet.on('dblclick', function(e) {
-                const lat = e.latlng.lat;
-                const lng = e.latlng.lng;
-                abrirMenuFlotanteMapa(lat, lng);
+                mapaAccionNuevoCliente(e.latlng.lat, e.latlng.lng);
             });
         }
 
-        function abrirMenuFlotanteMapa(lat, lng) {
-            document.getElementById('modal-title').innerText = "🗺️ Opciones de Mapa (GPS)";
-            const msgDiv = document.getElementById('modal-msg');
-            msgDiv.innerHTML = `
-                <p class="text-gray-600 mb-3">Coordenadas seleccionadas:<br><b>Lat: ${lat.toFixed(4)}, Lng: ${lng.toFixed(4)}</b></p>
-                <div class="space-y-2">
-                    <button onclick="mapaAccionNuevoCliente(${lat}, ${lng})" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2.5 px-3 rounded-lg text-xs shadow">
-                        ➕ Agregar Nuevo Cliente aquí
-                    </button>
-                    <button onclick="mapaAccionActualizarCliente(${lat}, ${lng})" class="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-2.5 px-3 rounded-lg text-xs shadow">
-                        🔄 Actualizar Ubicación de Cliente Existente
-                    </button>
-                </div>
-            `;
-            document.getElementById('app-modal').classList.remove('hidden');
-        }
-
         function mapaAccionNuevoCliente(lat, lng) {
-            cerrarModal();
-            appState.tempGpsData = { lat, lng };
             switchTab('clientes');
             toggleSeccionCliente('form');
             limpiarFormCliente();
             appState.tempGpsData = { lat, lng };
             document.getElementById('gps-status-txt').innerText = `GPS Marcado: (${lat.toFixed(4)}, ${lng.toFixed(4)})`;
+            mostrarModal("Nuevo Cliente", "Coordenadas capturadas del mapa. Complete los datos y guarde.");
         }
 
-        function mapaAccionActualizarCliente(lat, lng) {
-            document.getElementById('modal-title').innerText = "🔍 Buscar Cliente a Reubicar";
-            const msgDiv = document.getElementById('modal-msg');
-            msgDiv.innerHTML = `
-                <input type="text" id="input-buscar-mapa" placeholder="Escribí el nombre del cliente..." class="w-full p-2 border rounded text-xs mb-2" oninput="filtrarClientesMapaModal(${lat}, ${lng})">
-                <div id="lista-resultados-mapa" class="max-h-48 overflow-y-auto space-y-1 text-left"></div>
-            `;
-            filtrarClientesMapaModal(lat, lng);
-        }
-
-        function filtrarClientesMapaModal(lat, lng) {
-            const query = (document.getElementById('input-buscar-mapa').value || "").toLowerCase();
-            const cont = document.getElementById('lista-resultados-mapa');
-            if(!cont) return;
-            cont.innerHTML = '';
-            
-            const filtrados = appState.clientes.filter(c => c.nombre.toLowerCase().includes(query) || c.direccion.toLowerCase().includes(query));
-            if(filtrados.length === 0) {
-                cont.innerHTML = '<p class="text-xs text-gray-500 text-center py-2">No se encontraron clientes.</p>';
-                return;
-            }
-
-            filtrados.forEach(c => {
-                cont.innerHTML += `
-                    <div class="bg-gray-50 hover:bg-blue-50 border p-2 rounded cursor-pointer flex justify-between items-center text-xs" onclick="asignarGpsCliente(${c.id}, ${lat}, ${lng})">
-                        <div><strong>${c.nombre}</strong><br><span class="text-gray-500">${c.direccion}</span></div>
-                        <span class="bg-blue-600 text-white px-2 py-1 rounded font-bold">Elegir 📍</span>
-                    </div>
-                `;
-            });
-        }
-
-        function asignarGpsCliente(idCli, lat, lng) {
-            const cli = appState.clientes.find(c => c.id === idCli);
-            if(cli) {
-                cli.gps = { lat, lng };
-                guardarStorage();
-                renderClientesRuta();
-                renderPadronClientes();
-                cerrarModal();
-                mostrarModal('Ubicación Actualizada', `Se actualizó el GPS de ${cli.nombre} correctamente.`);
-            }
-        }
-
+        // GALPÓN EN AJUSTES
         function fijarUbicacionGalponGPS() {
             if (navigator.geolocation) {
                 navigator.geolocation.getCurrentPosition(pos => {
                     appState.galponGps = { lat: pos.coords.latitude, lng: pos.coords.longitude };
                     guardarStorage();
+                    actualizarEstadoGalponUI();
                     renderClientesRuta();
-                    mostrarModal('Galpón Guardado', 'Se fijó la ubicación de salida del depósito/galpón.');
-                }, () => mostrarModal('GPS Error', 'No se pudo capturar el GPS para el galpón.'));
+                    mostrarModal('Galpón Guardado', 'Se fijó la ubicación actual del depósito/galpón por GPS.');
+                }, () => mostrarModal('GPS Error', 'No se pudo capturar la ubicación.'));
             }
+        }
+
+        function toggleMapaGalponSettings() {
+            const cont = document.getElementById('contenedor-mapa-galpon');
+            cont.classList.toggle('hidden');
+            if(!cont.classList.contains('hidden')) {
+                if(!mapGalpon) {
+                    const g = appState.galponGps || { lat: -31.5372, lng: -68.5252 };
+                    mapGalpon = L.map('mapa-galpon-real', { maxZoom: 19 }).setView([g.lat, g.lng], 18);
+                    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19 }).addTo(mapGalpon);
+                    
+                    markerGalpon = L.marker([g.lat, g.lng], {draggable: true}).addTo(mapGalpon);
+                    markerGalpon.on('dragend', function(e) {
+                        const pos = markerGalpon.getLatLng();
+                        appState.galponGps = { lat: pos.lat, lng: pos.lng };
+                        guardarStorage();
+                        actualizarEstadoGalponUI();
+                    });
+
+                    mapGalpon.on('click', function(e) {
+                        markerGalpon.setLatLng(e.latlng);
+                        appState.galponGps = { lat: e.latlng.lat, lng: e.latlng.lng };
+                        guardarStorage();
+                        actualizarEstadoGalponUI();
+                    });
+                }
+                setTimeout(() => mapGalpon.invalidateSize(), 300);
+            }
+        }
+
+        function actualizarEstadoGalponUI() {
+            const box = document.getElementById('status-galpon-settings');
+            if(box && appState.galponGps) {
+                box.innerHTML = `📍 Galpón configurado en: Lat: ${appState.galponGps.lat.toFixed(4)}, Lng: ${appState.galponGps.lng.toFixed(4)}`;
+            }
+        }
+
+        // PLANTILLAS DE WHATSAPP
+        function cargarPlantillasWAUI() {
+            if(document.getElementById('tpl-no-esta')) {
+                document.getElementById('tpl-no-esta').value = appState.plantillasWA.noEsta;
+                document.getElementById('tpl-volver').value = appState.plantillasWA.volver;
+            }
+        }
+
+        function guardarPlantillasWA() {
+            appState.plantillasWA.noEsta = document.getElementById('tpl-no-esta').value;
+            appState.plantillasWA.volver = document.getElementById('tpl-volver').value;
+            guardarStorage();
         }
 
         function calcularRecomendacionCarga() {
@@ -977,11 +1002,12 @@
             guardarStorage();
         }
 
+        // COPIAS DE SEGURIDAD CON ACCEPT=*/* PARA GOOGLE DRIVE
         function exportarBackupJSON() {
             const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(appState));
             const downloadAnchor = document.createElement('a');
             downloadAnchor.setAttribute("href", dataStr);
-            downloadAnchor.setAttribute("download", `soderapp_v185_backup_${new Date().toISOString().split('T')[0]}.json`);
+            downloadAnchor.setAttribute("download", `soderapp_v186_backup_${new Date().toISOString().split('T')[0]}.json`);
             document.body.appendChild(downloadAnchor);
             downloadAnchor.click();
             downloadAnchor.remove();
@@ -1002,7 +1028,7 @@
                         mostrarModal("Error", "Archivo de backup no válido.");
                     }
                 } catch (err) {
-                    mostrarModal("Error", "No se pudo leer el archivo de backup.");
+                    mostrarModal("Error", "No se pudo leer el archivo de respaldo.");
                 }
             };
             reader.readAsText(file);
@@ -1010,7 +1036,7 @@
 
         function guardarStorage() {
             try {
-                localStorage.setItem('chosen_soderapp_v185_data', JSON.stringify(appState));
+                localStorage.setItem('chosen_soderapp_v186_data', JSON.stringify(appState));
             } catch (e) {
                 console.error("Error storage:", e);
                 mostrarModal("Alerta de Memoria", "La imagen es muy pesada. Intente con una foto más liviana.");
@@ -1018,7 +1044,7 @@
         }
 
         function cargarStorage() {
-            const data = localStorage.getItem('chosen_soderapp_v185_data');
+            const data = localStorage.getItem('chosen_soderapp_v186_data');
             if (data) { try { appState = JSON.parse(data); } catch(e) {} }
         }
 
@@ -1106,7 +1132,7 @@
         }
 
         function guardarComisionesConConfirmacion() {
-            if(confirm("¿Desea confirmar el cambio en los porcentajes/montos de comisiones?")) {
+            if(confirm("¿Desea confirmar el cambio en las comisiones?")) {
                 appState.comisiones.b20 = parseInt(document.getElementById('com-20').value) || 0;
                 appState.comisiones.b12 = parseInt(document.getElementById('com-12').value) || 0;
                 appState.comisiones.soda = parseInt(document.getElementById('com-soda').value) || 0;
@@ -1135,6 +1161,17 @@
             document.getElementById('stk-rotos-12').value = appState.galpon.b12.rotos || 0;
             document.getElementById('stk-rotos-soda').value = appState.galpon.soda.rotos || 0;
             document.getElementById('stk-rotos-soda500').value = appState.galpon.soda500 ? (appState.galpon.soda500.rotos || 0) : 0;
+            
+            actualizarConteoPacksGalpon();
+        }
+
+        function actualizarConteoPacksGalpon() {
+            const s1l = parseInt(document.getElementById('stk-galpon-soda').value) || 0;
+            const s500 = parseInt(document.getElementById('stk-galpon-soda500').value) || 0;
+            if(document.getElementById('lbl-pack-s1l')) {
+                document.getElementById('lbl-pack-s1l').innerText = `${Math.floor(s1l / 6)} Packs`;
+                document.getElementById('lbl-pack-s500').innerText = `${Math.floor(s500 / 12)} Packs`;
+            }
         }
 
         function guardarStockGalponManualConConfirmacion() {
@@ -1207,10 +1244,15 @@
         }
 
         function actualizarStockCamionEnVivoUI() {
+            const s1l = appState.camionEnVivo.llenos.soda;
+            const s500 = appState.camionEnVivo.llenos.soda500 || 0;
+
             document.getElementById('vivo-lleno-20').innerText = appState.camionEnVivo.llenos.b20;
             document.getElementById('vivo-lleno-12').innerText = appState.camionEnVivo.llenos.b12;
-            document.getElementById('vivo-lleno-soda').innerText = appState.camionEnVivo.llenos.soda;
-            document.getElementById('vivo-lleno-soda500').innerText = appState.camionEnVivo.llenos.soda500 || 0;
+            document.getElementById('vivo-lleno-soda').innerText = s1l;
+            document.getElementById('pack-vivo-soda').innerText = Math.floor(s1l / 6);
+            document.getElementById('vivo-lleno-soda500').innerText = s500;
+            document.getElementById('pack-vivo-soda500').innerText = Math.floor(s500 / 12);
             document.getElementById('vivo-lleno-mesa').innerText = appState.camionEnVivo.llenos.mesa;
 
             document.getElementById('vivo-vac-20').innerText = appState.camionEnVivo.vacios.b20;
@@ -1233,11 +1275,6 @@
             const ingVacSoda = parseInt(document.getElementById('vac-ing-vac-soda').value) || 0;
             const ingVacSoda500 = parseInt(document.getElementById('vac-ing-vac-soda500').value) || 0;
 
-            const pinch20 = parseInt(document.getElementById('pinch-20').value) || 0;
-            const pinch12 = parseInt(document.getElementById('pinch-12').value) || 0;
-            const pinchSoda = parseInt(document.getElementById('pinch-soda').value) || 0;
-            const pinchSoda500 = parseInt(document.getElementById('pinch-soda500').value) || 0;
-
             if(!appState.galpon.soda500) appState.galpon.soda500 = { llenos:0, fabrica:0, rotos:0 };
 
             appState.galpon.b20.llenos += devLleno20; 
@@ -1250,11 +1287,6 @@
             appState.galpon.b12.fabrica += ingVac12;
             appState.galpon.soda.fabrica += ingVacSoda;
             appState.galpon.soda500.fabrica += ingVacSoda500;
-
-            appState.galpon.b20.rotos = (appState.galpon.b20.rotos || 0) + pinch20;
-            appState.galpon.b12.rotos = (appState.galpon.b12.rotos || 0) + pinch12;
-            appState.galpon.soda.rotos = (appState.galpon.soda.rotos || 0) + pinchSoda;
-            appState.galpon.soda500.rotos = (appState.galpon.soda500.rotos || 0) + pinchSoda500;
 
             appState.camionEnVivo = { 
                 llenos: { b20: 0, b12: 0, soda: 0, soda500: 0, mesa: 0 }, 
@@ -1318,7 +1350,7 @@
 
             filtrados.forEach((c, idx) => {
                 const est = c.estado || 'Pendiente';
-                const colorHex = colores[est] || (c.tipo === 'Posible Cliente' ? '#3b82f6' : '#f97316');
+                const colorHex = colores[est] || '#f97316';
 
                 const el = document.createElement('div');
                 el.className = 'border-l-4 rounded-lg p-2.5 bg-white border shadow-sm flex justify-between items-center text-xs';
@@ -1382,7 +1414,7 @@
                         <p><strong>Vacíos Actuales:</strong> <span class="text-yellow-600 font-bold">20L: ${v20} | 12L: ${v12} | Sif.1L: ${vsoda} | Sif.500: ${vsoda500}</span></p>
                         <div class="flex items-center gap-2 mt-1">
                             <span><strong>Teléfono:</strong> ${cli.tel || 'S/T'}</span>
-                            <button onclick="abrirWhatsapp()" class="bg-green-600 hover:bg-green-700 text-white text-xs px-2 py-1 rounded font-bold flex items-center gap-1">
+                            <button onclick="abrirWhatsappDirecto('${cli.tel}')" class="bg-green-600 hover:bg-green-700 text-white text-xs px-2 py-1 rounded font-bold flex items-center gap-1">
                                 <i class="fab fa-whatsapp"></i> WhatsApp
                             </button>
                         </div>
@@ -1406,9 +1438,9 @@
                     <div class="grid grid-cols-2 gap-2 text-xs">
                         <div><label class="block font-semibold">Bidón 20L:</label><input type="number" id="vta-cant-20" value="0" min="0" class="w-full p-1.5 border rounded" oninput="calcularVenta()"></div>
                         <div><label class="block font-semibold">Bidón 12L:</label><input type="number" id="vta-cant-12" value="0" min="0" class="w-full p-1.5 border rounded" oninput="calcularVenta()"></div>
-                        <div><label class="block font-semibold">Sifones Soda 1L:</label><input type="number" id="vta-cant-soda" value="0" min="0" class="w-full p-1.5 border rounded" oninput="calcularVenta()"></div>
-                        <div><label class="block font-semibold">Sifones Soda 500ml:</label><input type="number" id="vta-cant-soda500" value="0" min="0" class="w-full p-1.5 border rounded" oninput="calcularVenta()"></div>
-                        <div class="col-span-2"><label class="block font-semibold">Venta Dispense Mesa:</label><input type="number" id="vta-cant-mesa" value="0" min="0" class="w-full p-1.5 border rounded" oninput="calcularVenta()"></div>
+                        <div><label class="block font-semibold">Sifones Soda 1L (<span id="lbl-vta-ps1" class="text-blue-700">0 Pk</span>):</label><input type="number" id="vta-cant-soda" value="0" min="0" class="w-full p-1.5 border rounded" oninput="calcularVenta()"></div>
+                        <div><label class="block font-semibold">Sifones Soda 500 (<span id="lbl-vta-ps500" class="text-blue-700">0 Pk</span>):</label><input type="number" id="vta-cant-soda500" value="0" min="0" class="w-full p-1.5 border rounded" oninput="calcularVenta()"></div>
+                        <div class="col-span-2"><label class="block font-semibold">Venta Dispenser Mesa:</label><input type="number" id="vta-cant-mesa" value="0" min="0" class="w-full p-1.5 border rounded" oninput="calcularVenta()"></div>
                     </div>
 
                     <hr class="my-2">
@@ -1439,20 +1471,12 @@
                             <input type="number" id="vta-pago" value="0" class="w-full p-1.5 border rounded font-bold">
                         </div>
                     </div>
-
-                    <div class="bg-gray-50 p-2 rounded border mt-2">
-                        <span class="font-bold text-gray-700 block mb-1 text-[11px]">⚙️ Modificar Precio Unitario para este Cliente ($):</span>
-                        <div class="grid grid-cols-2 gap-2 text-xs">
-                            <div><label>P. 20L:</label><input type="number" id="custom-prc-20" value="${cli.preciosPersonalizados.b20 || appState.precios.b20}" class="w-full p-1 border rounded" oninput="calcularVenta()"></div>
-                            <div><label>P. Soda:</label><input type="number" id="custom-prc-soda" value="${cli.preciosPersonalizados.soda || appState.precios.soda}" class="w-full p-1 border rounded" oninput="calcularVenta()"></div>
-                        </div>
-                    </div>
                 </div>
             `;
 
             document.getElementById('modal-buttons').innerHTML = `
                 <button onclick="completarVentaConConfirmacion()" class="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-2.5 px-4 rounded-lg shadow text-xs sm:text-sm">
-                    Confirmar Venta y Limpiar Formulario
+                    Confirmar Venta y Continuar
                 </button>
             `;
             document.getElementById('app-modal').classList.remove('hidden');
@@ -1478,10 +1502,12 @@
             const cSoda500 = parseInt(document.getElementById('vta-cant-soda500').value) || 0;
             const cMesa = parseInt(document.getElementById('vta-cant-mesa').value) || 0;
 
-            const p20 = parseInt(document.getElementById('custom-prc-20').value) || appState.precios.b20;
-            const pSoda = parseInt(document.getElementById('custom-prc-soda').value) || appState.precios.soda;
+            if(document.getElementById('lbl-vta-ps1')) {
+                document.getElementById('lbl-vta-ps1').innerText = `${Math.floor(cSoda / 6)} Pk`;
+                document.getElementById('lbl-vta-ps500').innerText = `${Math.floor(cSoda500 / 12)} Pk`;
+            }
 
-            const total = (c20 * p20) + (c12 * appState.precios.b12) + (cSoda * pSoda) + (cSoda500 * (appState.precios.soda500 || 1200)) + (cMesa * appState.precios.mesa);
+            const total = (c20 * appState.precios.b20) + (c12 * appState.precios.b12) + (cSoda * appState.precios.soda) + (cSoda500 * (appState.precios.soda500 || 1200)) + (cMesa * appState.precios.mesa);
             document.getElementById('vta-total').value = total; 
             document.getElementById('vta-pago').value = total;
         }
@@ -1493,6 +1519,7 @@
             if (!cli) return;
             const total = parseInt(document.getElementById('vta-total').value) || 0;
             const medio = document.getElementById('vta-medio').value;
+            const estadoVisita = document.getElementById('vta-estado-visita').value;
 
             const c20 = parseInt(document.getElementById('vta-cant-20').value) || 0;
             const c12 = parseInt(document.getElementById('vta-cant-12').value) || 0;
@@ -1505,7 +1532,7 @@
             const devSoda = parseInt(document.getElementById('vta-dev-soda').value) || 0;
             const devSoda500 = parseInt(document.getElementById('vta-dev-soda500').value) || 0;
 
-            cli.estado = document.getElementById('vta-estado-visita').value;
+            cli.estado = estadoVisita;
             if (cli.estado === 'Pendiente' && total > 0) cli.estado = 'Entregado';
 
             cli.totalHistorico = (cli.totalHistorico || 0) + total;
@@ -1552,7 +1579,43 @@
             actualizarFinanzasUI();
             actualizarEnvasesClientesTotalesUI();
             cerrarModal();
-            mostrarModal('Venta Exitosa', 'Se registró la entrega y se limpió el formulario correctamente.');
+
+            // Gatillo de WhatsApp automático si no está o volver
+            if(estadoVisita === 'NoEstaba' && cli.tel) {
+                preguntarEnvioWhatsApp(cli.tel, appState.plantillasWA.noEsta);
+            } else if(estadoVisita === 'Volver' && cli.tel) {
+                preguntarEnvioWhatsApp(cli.tel, appState.plantillasWA.volver);
+            } else {
+                mostrarModal('Venta Exitosa', 'Se registró la entrega correctamente.');
+            }
+        }
+
+        function preguntarEnvioWhatsApp(tel, mensaje) {
+            document.getElementById('modal-title').innerText = "💬 Enviar Mensaje de WhatsApp";
+            document.getElementById('modal-msg').innerHTML = `
+                <p class="mb-2">¿Desea enviar el mensaje predeterminado al cliente?</p>
+                <div class="bg-gray-50 p-2 rounded border text-xs italic text-gray-700">"${mensaje}"</div>
+            `;
+            document.getElementById('modal-buttons').innerHTML = `
+                <div class="grid grid-cols-2 gap-2">
+                    <button onclick="enviarWAFinal('${tel}', '${encodeURIComponent(mensaje)}')" class="bg-green-600 hover:bg-green-700 text-white font-bold py-2 rounded-lg text-xs shadow">Enviar</button>
+                    <button onclick="cerrarModal()" class="bg-gray-400 hover:bg-gray-500 text-white font-bold py-2 rounded-lg text-xs shadow">No hacer nada</button>
+                </div>
+            `;
+            document.getElementById('app-modal').classList.remove('hidden');
+        }
+
+        function enviarWAFinal(tel, msgEncoded) {
+            window.open(`https://wa.me/549${tel}?text=${msgEncoded}`, '_blank');
+            cerrarModal();
+        }
+
+        function abrirWhatsappDirecto(tel) {
+            if(tel) {
+                window.open(`https://wa.me/549${tel}?text=Hola!%20Te%20saludamos%20de%20Chosen%20SoderApp`, '_blank');
+            } else {
+                mostrarModal('Aviso', 'El cliente no tiene teléfono registrado.');
+            }
         }
 
         function comprimirImagen(file, callback) {
@@ -1595,30 +1658,42 @@
             }
         }
 
-        // CAPTURA GPS ESTILO WHATSAPP (CUENTA REGRESIVA PRECISIÓN)
+        // GPS PACIENTE DE ALTA PRECISIÓN (Punto clave)
         function capturarGpsClienteEnVivo() {
             if (!navigator.geolocation) {
                 mostrarModal('Error', 'Geolocalización no soportada por tu navegador.');
                 return;
             }
             document.getElementById('gps-status-txt').innerText = '🛰️ Buscando señal fina... (Espere)';
+            document.getElementById('btn-guardar-gps-manual').classList.add('hidden');
             
             let watchId = navigator.geolocation.watchPosition(pos => {
                 const lat = pos.coords.latitude;
                 const lng = pos.coords.longitude;
                 const acc = Math.round(pos.coords.accuracy);
                 
-                document.getElementById('gps-status-txt').innerText = `🛰️ Precisión: ${acc}m (${lat.toFixed(4)}, ${lng.toFixed(4)})`;
+                document.getElementById('gps-status-txt').innerText = `🛰️ Precisión: ~${acc}m (${lat.toFixed(4)}, ${lng.toFixed(4)})`;
+                appState.tempGpsData = { lat, lng };
+                
+                // Habilita el botón manual en cuanto baje de rango o de inmediato para elegir casas con retiro de 10-15m
+                document.getElementById('btn-guardar-gps-manual').classList.remove('hidden');
 
                 if (acc <= 15) {
                     navigator.geolocation.clearWatch(watchId);
-                    appState.tempGpsData = { lat, lng };
-                    document.getElementById('gps-status-txt').innerText = `✅ GPS Fijo en puerta (${acc}m): (${lat.toFixed(4)}, ${lng.toFixed(4)})`;
-                    mostrarModal('GPS Preciso Obtenido', `Se fijó la posición con ${acc}m de precisión.`);
+                    document.getElementById('gps-status-txt').innerText = `✅ GPS Fijo ideal (${acc}m): (${lat.toFixed(4)}, ${lng.toFixed(4)})`;
                 }
             }, err => {
-                mostrarModal('Error GPS', 'No se pudo obtener la ubicación.');
-            }, { enableHighAccuracy: true, timeout: 15000, maximumAge: 0 });
+                document.getElementById('gps-status-txt').innerText = '⚠️ Error de señal. Intente nuevamente.';
+            }, { enableHighAccuracy: true, timeout: 20000, maximumAge: 0 });
+        }
+
+        function confirmarGPSActual() {
+            if (appState.tempGpsData) {
+                document.getElementById('btn-guardar-gps-manual').classList.add('hidden');
+                mostrarModal('GPS Guardado', 'Ubicación guardada manualmente con éxito.');
+            } else {
+                mostrarModal('Aviso', 'Primero capture la ubicación GPS.');
+            }
         }
 
         function guardarRegistroClienteConConfirmacion() {
@@ -1655,9 +1730,9 @@
                 estado: 'Pendiente',
                 activo: true,
                 foto: appState.tempFotoData || '',
-                gps: appState.tempGpsData || appState.mapState || { lat: -31.980, lng: -68.433 },
+                gps: appState.tempGpsData || appState.mapState || { lat: -31.5372, lng: -68.5252 },
                 vacios: { b20: vac20, b12: vac12, soda: vacSoda, soda500: vacSoda500 },
-                denda: 0, totalHistorico: 0, preciosPersonalizados: {}
+                deuda: 0, totalHistorico: 0, preciosPersonalizados: {}
             };
 
             if (editId) {
@@ -1667,6 +1742,8 @@
                     nuevoCli.gps = appState.tempGpsData || appState.clientes[idx].gps;
                     nuevoCli.vacios = { b20: vac20, b12: vac12, soda: vacSoda, soda500: vacSoda500 };
                     nuevoCli.activo = appState.clientes[idx].activo;
+                    nuevoCli.deuda = appState.clientes[idx].deuda || 0;
+                    nuevoCli.totalHistorico = appState.clientes[idx].totalHistorico || 0;
                     nuevoCli.preciosPersonalizados = appState.clientes[idx].preciosPersonalizados || {};
                     appState.clientes[idx] = nuevoCli;
                 }
@@ -1694,18 +1771,32 @@
             document.getElementById('alta-vac-12').value = '0';
             document.getElementById('alta-vac-soda').value = '0';
             document.getElementById('alta-vac-soda500').value = '0';
-            document.getElementById('alta-foto-input').value = '';
+            if(document.getElementById('input-camara-directa')) document.getElementById('input-camara-directa').value = '';
+            if(document.getElementById('input-galeria-directa')) document.getElementById('input-galeria-directa').value = '';
             const prev = document.getElementById('alta-foto-preview');
             if(prev) prev.classList.add('hidden');
             document.getElementById('gps-status-txt').innerText = 'GPS: No capturado';
+            if(document.getElementById('btn-guardar-gps-manual')) document.getElementById('btn-guardar-gps-manual').classList.add('hidden');
             appState.tempFotoData = ''; appState.tempGpsData = null;
         }
 
+        // PADRÓN CON FILTRO INDEPENDIENTE POR DÍA
         function renderPadronClientes() {
-            const query = document.getElementById('buscador-clientes').value.toLowerCase();
+            const diaFiltro = document.getElementById('filtro-dia-padron') ? document.getElementById('filtro-dia-padron').value : 'TODOS';
+            const query = (document.getElementById('buscador-clientes').value || "").toLowerCase();
             const cont = document.getElementById('lista-padron-clientes');
             cont.innerHTML = '';
-            const filtrados = appState.clientes.filter(c => c.nombre.toLowerCase().includes(query) || c.direccion.toLowerCase().includes(query) || (c.tel && c.tel.includes(query)));
+
+            const filtrados = appState.clientes.filter(c => {
+                const cumpleDia = (diaFiltro === "TODOS" || c.dia === diaFiltro);
+                const cumpleTexto = c.nombre.toLowerCase().includes(query) || c.direccion.toLowerCase().includes(query) || (c.tel && c.tel.includes(query)) || c.dia.toLowerCase().includes(query);
+                return cumpleDia && cumpleTexto;
+            });
+
+            if(filtrados.length === 0) {
+                cont.innerHTML = '<p class="text-xs text-gray-500 text-center py-4">No hay clientes coincidentes para este filtro.</p>';
+                return;
+            }
 
             filtrados.forEach(c => {
                 const esActivo = c.activo !== false;
@@ -1720,16 +1811,15 @@
                 cont.innerHTML += `
                     <div class="bg-gray-50 border p-2.5 rounded-lg flex justify-between items-center text-xs">
                         <div>
-                            <strong>${c.nombre}</strong> <span class="text-blue-600">(${c.tipo})</span><br>
-                            <span class="text-gray-600">${c.direccion} - Día: ${c.dia}</span><br>
-                            <span class="text-yellow-700 font-semibold">Vacíos: 20L(${v20}) 12L(${v12}) Sif.1L(${vsoda}) Sif.500ml(${vsoda500})</span>
-                            ${deudaCli > function(){return 0}() ? `<br><span class="text-red-600 font-bold">⚠️ Deuda (Fiado): $${deudaCli}</span>` : ''}
+                            <strong>${c.nombre}</strong> <span class="text-blue-600 font-bold">(${c.dia})</span><br>
+                            <span class="text-gray-600">${c.direccion} - Zona: ${c.zona}</span><br>
+                            <span class="text-yellow-700 font-semibold">Vacíos: 20L(${v20}) 12L(${v12}) Sif.1L(${vsoda}) Sif.500(${vsoda500})</span>
+                            ${deudaCli > 0 ? `<br><span class="text-red-600 font-bold">⚠️ Deuda: $${deudaCli}</span>` : ''}
                             <span class="ml-2 px-2 py-0.5 rounded font-bold ${estadoClase}">${estadoTexto}</span>
                         </div>
-                        <div class="flex gap-1">
-                            <button onclick="toggleBajaCliente(${c.id})" class="${esActivo ? 'bg-yellow-600' : 'bg-green-600'} text-white px-2 py-1 rounded font-bold">${esActivo ? 'Dar Baja' : 'Reactivar'}</button>
+                        <div class="flex flex-col gap-1">
                             <button onclick="editarCliente(${c.id})" class="bg-blue-600 text-white px-2 py-1 rounded font-bold">Editar</button>
-                            <button onclick="eliminarClienteConConfirmacion(${c.id})" class="bg-red-600 text-white px-2 py-1 rounded font-bold">🗑</button>
+                            <button onclick="toggleBajaCliente(${c.id})" class="${esActivo ? 'bg-yellow-600' : 'bg-green-600'} text-white px-2 py-1 rounded font-bold">${esActivo ? 'Baja' : 'Activar'}</button>
                         </div>
                     </div>`;
             });
@@ -1778,14 +1868,6 @@
             }
         }
 
-        function eliminarClienteConConfirmacion(id) {
-            const cli = appState.clientes.find(c => c.id === id);
-            if (cli && confirm(`¿Está seguro de que desea eliminar permanentemente al cliente "${cli.nombre}"?`)) {
-                appState.clientes = appState.clientes.filter(c => c.id !== id);
-                guardarStorage(); renderClientesRuta(); renderPadronClientes(); renderMetricasClientes(); actualizarEnvasesClientesTotalesUI();
-            }
-        }
-
         function renderMetricasClientes() {
             const activos = appState.clientes.filter(c => c.activo !== false).length;
             document.getElementById('met-activos').innerText = activos;
@@ -1827,19 +1909,6 @@
                 tb.innerHTML += `<tr class="border-b"><td class="p-2">${it.nombre}</td><td class="p-2">${it.cant}</td><td class="p-2">$${it.precio}</td><td class="p-2 font-bold">$${sub}</td></tr>`;
             });
 
-            const tbSem = document.getElementById('tb-desglose-semana'); tbSem.innerHTML = '';
-            const itemsSem = [
-                { nombre: 'Bidón 20L', cant: appState.ventasSemana.b20, precio: appState.precios.b20 },
-                { nombre: 'Bidón 12L', cant: appState.ventasSemana.b12, precio: appState.precios.b12 },
-                { nombre: 'Sifón Soda 1L', cant: appState.ventasSemana.soda, precio: appState.precios.soda },
-                { nombre: 'Sifón Soda 500ml', cant: appState.ventasSemana.soda500 || 0, precio: appState.precios.soda500 || 1200 },
-                { nombre: 'Dispenser Mesa', cant: appState.ventasSemana.mesa, precio: appState.precios.mesa }
-            ];
-            itemsSem.forEach(it => {
-                const subSem = it.cant * it.precio;
-                tbSem.innerHTML += `<tr class="border-b"><td class="p-2">${it.nombre}</td><td class="p-2">${it.cant}</td><td class="p-2 font-bold">$${subSem}</td></tr>`;
-            });
-
             document.getElementById('fin-efectivo').innerText = '$' + appState.finanzas.efectivo;
             document.getElementById('fin-transf').innerText = '$' + appState.finanzas.transferencia;
 
@@ -1857,44 +1926,6 @@
             document.getElementById('fin-rendir-dueno').innerText = '$' + totalRendir;
         }
 
-        function finalizarSemanaCajaConConfirmacion() {
-            if(confirm("¿Desea CONFIRMAR el cierre semanal de Caja?\nEsto archivará el total ganado en el historial y reiniciará el balance semanal a $0.")) {
-                if(!appState.historialCierresSemanales) appState.historialCierresSemanales = [];
-                
-                const recTot = appState.finanzas.efectivo + appState.finanzas.transferencia;
-                appState.historialCierresSemanales.unshift({
-                    fecha: new Date().toLocaleDateString(),
-                    recaudado: recTot,
-                    ventas: { ...appState.ventasSemana }
-                });
-
-                appState.ventasSemana = { b20: 0, b12: 0, soda: 0, soda500: 0, mesa: 0 };
-                appState.finanzas.efectivo = 0;
-                appState.finanzas.transferencia = 0;
-                appState.finanzas.gastos = [];
-
-                guardarStorage();
-                actualizarFinanzasUI();
-                cargarHistorialCierresSemanalesUI();
-                mostrarModal('Cierre Exitoso', 'La semana fue cerrada y guardada en el historial.');
-            }
-        }
-
-        function cargarHistorialCierresSemanalesUI() {
-            const cont = document.getElementById('historial-cierres-semanales');
-            if(!cont) return;
-            if(!appState.historialCierresSemanales || appState.historialCierresSemanales.length === 0) {
-                cont.innerHTML = 'No hay cierres semanales aún.';
-                return;
-            }
-            cont.innerHTML = appState.historialCierresSemanales.map(h => `
-                <div class="bg-gray-50 border p-2 rounded flex justify-between">
-                    <span>📅 <b>${h.fecha}</b></span>
-                    <span class="text-green-700 font-bold">$${h.recaudado.toLocaleString()}</span>
-                </div>
-            `).join('');
-        }
-
         function registrarGasto() {
             const concepto = document.getElementById('gasto-concepto').value.trim();
             const monto = parseInt(document.getElementById('gasto-monto').value) || 0;
@@ -1903,53 +1934,6 @@
             document.getElementById('gasto-concepto').value = '';
             document.getElementById('gasto-monto').value = '';
             guardarStorage(); actualizarFinanzasUI();
-        }
-
-        let grabandoGPS = false; let puntosGPSActuales = [];
-        function toggleGrabacionGPS() {
-            grabandoGPS = !grabandoGPS;
-            const tag = document.getElementById('tag-grabando');
-            const btn = document.getElementById('btn-iniciar-rec');
-            if (grabandoGPS) {
-                tag.classList.remove('hidden');
-                btn.innerText = '⏹ Detener y Guardar Traza';
-                btn.className = 'bg-gray-700 text-white font-bold py-2 px-4 rounded-lg shadow';
-                puntosGPSActuales = [[-31.982, -68.433]];
-            } else {
-                tag.classList.add('hidden');
-                btn.innerText = '🔴 Iniciar Grabación GPS';
-                btn.className = 'bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 rounded-lg shadow';
-                const nombre = document.getElementById('nombre-recorrido-nuevo').value || 'Recorrido Ruta';
-                appState.recorridosGrabados.push({ id: Date.now(), nombre, puntos: puntosGPSActuales });
-                guardarStorage(); renderRecorridosGuardados();
-                document.getElementById('nombre-recorrido-nuevo').value = '';
-            }
-        }
-
-        function renderRecorridosGuardados() {
-            const cont = document.getElementById('lista-recorridos-guardados'); cont.innerHTML = '';
-            if(!appState.recorridosGrabados || appState.recorridosGrabados.length === 0) {
-                cont.innerHTML = '<p class="text-xs text-gray-500">No hay recorridos guardados.</p>'; return;
-            }
-            appState.recorridosGrabados.forEach(r => {
-                cont.innerHTML += `<div class="bg-gray-50 border p-2 rounded text-xs flex justify-between items-center"><span>📍 ${r.nombre} (${r.puntos.length} puntos)</span><button onclick="eliminarRecorrido(${r.id})" class="text-red-600 font-bold">🗑</button></div>`;
-            });
-        }
-
-        function eliminarRecorrido(id) {
-            if(confirm("¿Desea borrar este recorrido guardado?")) {
-                appState.recorridosGrabados = appState.recorridosGrabados.filter(r => r.id !== id);
-                guardarStorage(); renderRecorridosGuardados();
-            }
-        }
-
-        function abrirWhatsapp() {
-            const cli = appState.clientes.find(c => c.id === appState.clienteSeleccionadoId);
-            if(cli && cli.tel) {
-                window.open(`https://wa.me/549${cli.tel}?text=Hola!%20Te%20saludamos%20de%20Chosen%20SoderApp`, '_blank');
-            } else {
-                mostrarModal('Aviso', 'El cliente no tiene teléfono registrado.');
-            }
         }
 
         function mostrarModal(titulo, msg) {
@@ -1970,6 +1954,7 @@
             } else {
                 document.getElementById('sec-form-cliente').classList.add('hidden');
                 document.getElementById('sec-padron-cliente').classList.remove('hidden');
+                renderPadronClientes();
             }
         }
 
@@ -1978,8 +1963,8 @@
     <script>
       if ('serviceWorker' in navigator) {
         navigator.serviceWorker.register('./sw.js')
-          .then(() => console.log('Service Worker registrado correctamente'))
-          .catch((err) => console.log('Error al registrar Service Worker', err));
+          .then(() => console.log('Service Worker registrado'))
+          .catch((err) => console.log('Error SW', err));
       }
     </script>
 </body>
