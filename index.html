@@ -4,7 +4,7 @@
     <link rel="manifest" href="manifest.json">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Chosen 👑 SoderApp Pro v1.8.7 Pro</title>
+    <title>Chosen 👑 SoderApp Pro v1.8.8 Pro</title>
     <!-- Tailwind CSS -->
     <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
     <!-- Leaflet CSS para Mapas -->
@@ -16,6 +16,7 @@
         .tab-content.active { display: block; }
         #mapa-calles-real { height: 380px; z-index: 1; border-radius: 0.5rem; cursor: crosshair; }
         #mapa-galpon-real { height: 260px; z-index: 1; border-radius: 0.5rem; }
+        #mapa-seleccion-cliente { height: 240px; z-index: 1; border-radius: 0.5rem; }
         .preview-img { width: 100%; max-height: 140px; object-fit: cover; border-radius: 6px; border: 1px solid #cbd5e1; }
         
         /* Bloqueo Pull-To-Refresh y Scroll Elástico */
@@ -68,7 +69,7 @@
     <!-- Splash Screen Táctil -->
     <div id="splash-screen" onclick="cerrarSplash()" class="fixed inset-0 z-50 bg-cover bg-center flex flex-col justify-end pb-16 px-6 cursor-pointer" style="background-image: url('1000638284.jpg');">
         <div class="w-full max-w-sm mx-auto bg-blue-600 hover:bg-blue-700 text-white font-bold py-3.5 px-6 rounded-xl text-center text-base shadow-2xl transition transform active:scale-95 border border-blue-400">
-            <span>🚀 TOCA AQUÍ PARA INGRESAR (v1.8.7 Pro)</span>
+            <span>🚀 TOCA AQUÍ PARA INGRESAR (v1.8.8 Pro)</span>
         </div>
     </div>
 
@@ -76,7 +77,7 @@
     <header class="bg-gray-900 text-white px-4 py-2 shadow-md sticky top-0 z-40 flex justify-between items-center border-b border-gray-800">
         <div class="flex items-center space-x-2">
             <img src="1000638287.png" alt="Chosen SoderApp" class="h-10 object-contain">
-            <span class="text-xs bg-blue-600 text-white px-2 py-0.5 rounded font-bold">v1.8.7 Pro</span>
+            <span class="text-xs bg-blue-600 text-white px-2 py-0.5 rounded font-bold">v1.8.8 Pro</span>
         </div>
         <div class="flex items-center space-x-3">
             <button onclick="switchTab('config')" class="text-yellow-400 hover:text-yellow-300 text-2xl px-2 py-1 focus:outline-none" title="Configuración">
@@ -203,7 +204,7 @@
                         <i class="fas fa-layer-group"></i> <span id="lbl-tipo-mapa">Cambiar a Calles</span>
                     </button>
                 </div>
-                <p class="text-[11px] text-gray-500 mb-2">💡 <b>Tip:</b> Hacé <b>doble clic</b> en el mapa para abrir el menú de alta o reubicación de clientes.</p>
+                <p class="text-[11px] text-gray-500 mb-2">💡 <b>Tip:</b> Hacé <b>doble clic</b> en el mapa para abrir el menú flotante de alta o modificación de ubicación.</p>
                 <div id="mapa-calles-real"></div>
             </div>
 
@@ -333,15 +334,24 @@
                         <img id="alta-foto-preview" class="preview-img hidden mt-1" alt="Vista previa fachada">
                     </div>
 
-                    <!-- GPS Paciente en Vivo -->
-                    <div class="sm:col-span-2 bg-gray-50 p-2.5 rounded-lg border">
-                        <label class="block font-bold text-gray-700 mb-1">Ubicación GPS Puerta:</label>
-                        <button type="button" onclick="capturarGpsClienteEnVivo()" class="w-full bg-yellow-600 hover:bg-yellow-700 text-white font-bold py-2 px-3 rounded-lg text-xs shadow mb-1">
-                            📍 Capturar GPS Puerta en Vivo
-                        </button>
-                        <div id="gps-status-box" class="bg-white p-2 rounded border text-xs flex justify-between items-center mt-1">
+                    <!-- GPS Paciente en Vivo & Marcado en Mapa -->
+                    <div class="sm:col-span-2 bg-gray-50 p-2.5 rounded-lg border space-y-2">
+                        <label class="block font-bold text-gray-700">Ubicación GPS Puerta:</label>
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                            <button type="button" onclick="capturarGpsClienteEnVivo()" class="bg-yellow-600 hover:bg-yellow-700 text-white font-bold py-2 px-3 rounded-lg text-xs shadow">
+                                📍 Capturar GPS Puerta en Vivo
+                            </button>
+                            <button type="button" onclick="toggleMapaSeleccionCliente()" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-3 rounded-lg text-xs shadow">
+                                🗺️ Marcar / Modificar en Mapa
+                            </button>
+                        </div>
+                        <div id="gps-status-box" class="bg-white p-2 rounded border text-xs flex justify-between items-center">
                             <span id="gps-status-txt" class="text-gray-600 font-semibold">GPS: No capturado</span>
                             <button type="button" id="btn-guardar-gps-manual" onclick="confirmarGPSActual()" class="bg-green-600 text-white px-2 py-1 rounded font-bold hidden">Guardar</button>
+                        </div>
+                        <div id="contenedor-mapa-seleccion" class="hidden space-y-2 pt-1">
+                            <p class="text-[11px] text-gray-500">Hacé clic o arrastrá el marcador para fijar la ubicación exacta del cliente:</p>
+                            <div id="mapa-seleccion-cliente"></div>
                         </div>
                     </div>
                 </div>
@@ -782,7 +792,7 @@
             <div class="rounded-2xl shadow-xl overflow-hidden text-white bg-about-waves border border-blue-500/30">
                 <div class="p-6 space-y-4">
                     <div class="text-center space-y-1">
-                        <span class="bg-yellow-500 text-black px-3 py-0.5 rounded-full text-xs font-bold uppercase tracking-wide">Versión 1.8.7 Pro</span>
+                        <span class="bg-yellow-500 text-black px-3 py-0.5 rounded-full text-xs font-bold uppercase tracking-wide">Versión 1.8.8 Pro</span>
                         <h2 class="text-2xl font-extrabold text-yellow-300">Chosen SoderApp Pro</h2>
                         <p class="text-xs text-gray-200">Sistema de Control Total Satelital & Gestión de Soda y Agua</p>
                     </div>
@@ -803,7 +813,7 @@
 
     </main>
 
-    <!-- Barra de Navegación Inferior (Sin botón duplicado de ajustes) -->
+    <!-- Barra de Navegación Inferior -->
     <nav class="bg-white border-t border-gray-200 fixed bottom-0 left-0 right-0 shadow-lg flex justify-around p-2 z-40 text-xs">
         <button onclick="switchTab('recorrido')" class="nav-btn flex flex-col items-center text-blue-700 font-bold" id="nav-recorrido">
             <i class="fas fa-route text-lg"></i><span>Ruta</span>
@@ -839,7 +849,7 @@
     <!-- Leaflet JS -->
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
-    <!-- LÓGICA JS V1.8.7 PRO -->
+    <!-- LÓGICA JS V1.8.8 PRO -->
     <script>
         let appState = {
             precios: { b20: 3000, b12: 2200, soda: 1800, packSoda: 10000, soda500: 1200, packSoda500: 13000, fc: 8000, mesa: 15000 },
@@ -880,6 +890,8 @@
         let mapLeaflet = null;
         let mapGalpon = null;
         let markerGalpon = null;
+        let mapSeleccionCliente = null;
+        let markerSeleccionCliente = null;
         let mapMarkers = [];
         let layerSatelite = null;
         let layerCalles = null;
@@ -916,7 +928,7 @@
 
         function initMapaLeaflet() {
             const ms = appState.mapState || { lat: -31.5372, lng: -68.5252, zoom: 19 };
-            mapLeaflet = L.map('mapa-calles-real', { maxZoom: 19 }).setView([ms.lat, ms.lng], ms.zoom);
+            mapLeaflet = L.map('mapa-calles-real', { maxZoom: 19, doubleClickZoom: false }).setView([ms.lat, ms.lng], ms.zoom);
             
             layerSatelite = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
                 maxZoom: 19, attribution: '© Esri'
@@ -943,18 +955,78 @@
                 guardarStorage();
             });
 
+            // DOBLE CLIC EN EL MAPA PARA MENÚ FLOTANTE (AGREGAR / MODIFICAR)
             mapLeaflet.on('dblclick', function(e) {
-                mapaAccionNuevoCliente(e.latlng.lat, e.latlng.lng);
+                const lat = e.latlng.lat;
+                const lng = e.latlng.lng;
+                abrirMenuFlotanteMapa(lat, lng);
             });
         }
 
+        function abrirMenuFlotanteMapa(lat, lng) {
+            document.getElementById('modal-title').innerText = "🗺️ Opciones de Mapa (GPS)";
+            document.getElementById('modal-msg').innerHTML = `
+                <p class="text-xs text-gray-600 mb-3">Coordenadas seleccionadas: (${lat.toFixed(4)}, ${lng.toFixed(4)})</p>
+                <div class="space-y-2">
+                    <button onclick="mapaAccionNuevoCliente(${lat}, ${lng})" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2.5 px-3 rounded-lg text-xs shadow">
+                        ➕ Agregar Nuevo Cliente en este Punto
+                    </button>
+                    <button onclick="mapaModificarUbicacionUltimo(${lat}, ${lng})" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2.5 px-3 rounded-lg text-xs shadow">
+                        📍 Asignar/Modificar al Cliente en Edición
+                    </button>
+                </div>
+            `;
+            document.getElementById('modal-buttons').innerHTML = `<button onclick="cerrarModal()" class="w-full bg-gray-400 text-white font-bold py-2 rounded-lg text-xs shadow">Cancelar</button>`;
+            document.getElementById('app-modal').classList.remove('hidden');
+        }
+
         function mapaAccionNuevoCliente(lat, lng) {
+            cerrarModal();
             switchTab('clientes');
             toggleSeccionCliente('form');
             limpiarFormCliente();
             appState.tempGpsData = { lat, lng };
             document.getElementById('gps-status-txt').innerText = `GPS Marcado: (${lat.toFixed(4)}, ${lng.toFixed(4)})`;
             mostrarModal("Nuevo Cliente", "Coordenadas capturadas del mapa. Complete los datos y guarde.");
+        }
+
+        function mapaModificarUbicacionUltimo(lat, lng) {
+            appState.tempGpsData = { lat, lng };
+            document.getElementById('gps-status-txt').innerText = `GPS Modificado: (${lat.toFixed(4)}, ${lng.toFixed(4)})`;
+            cerrarModal();
+            switchTab('clientes');
+            toggleSeccionCliente('form');
+            mostrarModal("Ubicación Actualizada", "Se actualizaron las coordenadas para el cliente en edición. No olvides guardar.");
+        }
+
+        function toggleMapaSeleccionCliente() {
+            const cont = document.getElementById('contenedor-mapa-seleccion');
+            cont.classList.toggle('hidden');
+            if(!cont.classList.contains('hidden')) {
+                if(!mapSeleccionCliente) {
+                    const g = appState.tempGpsData || (appState.galpGps || { lat: -31.5372, lng: -68.5252 });
+                    mapSeleccionCliente = L.map('mapa-seleccion-cliente', { maxZoom: 19 }).setView([g.lat, g.lng], 18);
+                    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19 }).addTo(mapSeleccionCliente);
+                    
+                    markerSeleccionCliente = L.marker([g.lat, g.lng], {draggable: true}).addTo(mapSeleccionCliente);
+                    markerSeleccionCliente.on('dragend', function(e) {
+                        const pos = markerSeleccionCliente.getLatLng();
+                        appState.tempGpsData = { lat: pos.lat, lng: pos.lng };
+                        document.getElementById('gps-status-txt').innerText = `GPS Marcado: (${pos.lat.toFixed(4)}, ${pos.lng.toFixed(4)})`;
+                    });
+
+                    mapSeleccionCliente.on('click', function(e) {
+                        markerSeleccionCliente.setLatLng(e.latlng);
+                        appState.tempGpsData = { lat: e.latlng.lat, lng: e.latlng.lng };
+                        document.getElementById('gps-status-txt').innerText = `GPS Marcado: (${e.latlng.lat.toFixed(4)}, ${e.latlng.lng.toFixed(4)})`;
+                    });
+                } else {
+                    const g = appState.tempGpsData || { lat: -31.5372, lng: -68.5252 };
+                    mapSeleccionCliente.setView([g.lat, g.lng], 18);
+                    markerSeleccionCliente.setLatLng([g.lat, g.lng]);
+                }
+                setTimeout(() => mapSeleccionCliente.invalidateSize(), 300);
+            }
         }
 
         function fijarUbicacionGalponGPS() {
@@ -1080,7 +1152,7 @@
             const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(appState));
             const downloadAnchor = document.createElement('a');
             downloadAnchor.setAttribute("href", dataStr);
-            downloadAnchor.setAttribute("download", `soderapp_v187_backup_${new Date().toISOString().split('T')[0]}.json`);
+            downloadAnchor.setAttribute("download", `soderapp_v188_backup_${new Date().toISOString().split('T')[0]}.json`);
             document.body.appendChild(downloadAnchor);
             downloadAnchor.click();
             downloadAnchor.remove();
@@ -1109,7 +1181,7 @@
 
         function guardarStorage() {
             try {
-                localStorage.setItem('chosen_soderapp_v187_data', JSON.stringify(appState));
+                localStorage.setItem('chosen_soderapp_v188_data', JSON.stringify(appState));
             } catch (e) {
                 console.error("Error storage:", e);
                 mostrarModal("Alerta de Memoria", "La imagen es muy pesada. Intente con una foto más liviana.");
@@ -1117,7 +1189,7 @@
         }
 
         function cargarStorage() {
-            const data = localStorage.getItem('chosen_soderapp_v187_data');
+            const data = localStorage.getItem('chosen_soderapp_v188_data');
             if (data) { try { appState = JSON.parse(data); } catch(e) {} }
         }
 
@@ -1858,6 +1930,8 @@
             document.getElementById('gps-status-txt').innerText = 'GPS: No capturado';
             if(document.getElementById('btn-guardar-gps-manual')) document.getElementById('btn-guardar-gps-manual').classList.add('hidden');
             appState.tempFotoData = ''; appState.tempGpsData = null;
+            const contMapaSel = document.getElementById('contenedor-mapa-seleccion');
+            if(contMapaSel) contMapaSel.classList.add('hidden');
         }
 
         function renderPadronClientes() {
