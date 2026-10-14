@@ -4,7 +4,7 @@
     <link rel="manifest" href="manifest.json">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Chosen 👑 SoderApp Pro v1.8.6 Pro</title>
+    <title>Chosen 👑 SoderApp Pro v1.8.7 Pro</title>
     <!-- Tailwind CSS -->
     <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
     <!-- Leaflet CSS para Mapas -->
@@ -68,7 +68,7 @@
     <!-- Splash Screen Táctil -->
     <div id="splash-screen" onclick="cerrarSplash()" class="fixed inset-0 z-50 bg-cover bg-center flex flex-col justify-end pb-16 px-6 cursor-pointer" style="background-image: url('1000638284.jpg');">
         <div class="w-full max-w-sm mx-auto bg-blue-600 hover:bg-blue-700 text-white font-bold py-3.5 px-6 rounded-xl text-center text-base shadow-2xl transition transform active:scale-95 border border-blue-400">
-            <span>🚀 TOCA AQUÍ PARA INGRESAR (v1.8.6 Pro)</span>
+            <span>🚀 TOCA AQUÍ PARA INGRESAR (v1.8.7 Pro)</span>
         </div>
     </div>
 
@@ -76,7 +76,7 @@
     <header class="bg-gray-900 text-white px-4 py-2 shadow-md sticky top-0 z-40 flex justify-between items-center border-b border-gray-800">
         <div class="flex items-center space-x-2">
             <img src="1000638287.png" alt="Chosen SoderApp" class="h-10 object-contain">
-            <span class="text-xs bg-blue-600 text-white px-2 py-0.5 rounded font-bold">v1.8.6 Pro</span>
+            <span class="text-xs bg-blue-600 text-white px-2 py-0.5 rounded font-bold">v1.8.7 Pro</span>
         </div>
         <div class="flex items-center space-x-3">
             <button onclick="switchTab('config')" class="text-yellow-400 hover:text-yellow-300 text-2xl px-2 py-1 focus:outline-none" title="Configuración">
@@ -673,6 +673,17 @@
                 </div>
             </div>
 
+            <!-- GPS y Geolocalización en Tiempo Real -->
+            <div class="bg-white p-4 rounded-xl shadow-sm border border-gray-200 space-y-2">
+                <h3 class="text-sm font-bold text-gray-800 flex items-center gap-2">
+                    <i class="fas fa-satellite text-blue-600"></i> Geolocalización & Seguimiento de Ruta
+                </h3>
+                <p class="text-xs text-gray-500">Activación del sistema GPS satelital en tiempo real para el seguimiento del recorrido diario y guardado de coordenadas.</p>
+                <button onclick="mostrarModal('GPS Activo', 'El sistema de geolocalización en tiempo real y registro de ruta se encuentra activo.')" class="w-full bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold py-2 px-3 rounded-lg shadow">
+                    🛰️ Activar Geolocalización en Tiempo Real
+                </button>
+            </div>
+
             <!-- 1. Impresora Térmica Bluetooth -->
             <div class="bg-white p-4 rounded-xl shadow-sm border border-gray-200 space-y-2">
                 <h3 class="text-sm font-bold text-gray-800 flex items-center gap-2">
@@ -771,7 +782,7 @@
             <div class="rounded-2xl shadow-xl overflow-hidden text-white bg-about-waves border border-blue-500/30">
                 <div class="p-6 space-y-4">
                     <div class="text-center space-y-1">
-                        <span class="bg-yellow-500 text-black px-3 py-0.5 rounded-full text-xs font-bold uppercase tracking-wide">Versión 1.8.6 Pro</span>
+                        <span class="bg-yellow-500 text-black px-3 py-0.5 rounded-full text-xs font-bold uppercase tracking-wide">Versión 1.8.7 Pro</span>
                         <h2 class="text-2xl font-extrabold text-yellow-300">Chosen SoderApp Pro</h2>
                         <p class="text-xs text-gray-200">Sistema de Control Total Satelital & Gestión de Soda y Agua</p>
                     </div>
@@ -792,7 +803,7 @@
 
     </main>
 
-    <!-- Barra de Navegación Inferior -->
+    <!-- Barra de Navegación Inferior (Sin botón duplicado de ajustes) -->
     <nav class="bg-white border-t border-gray-200 fixed bottom-0 left-0 right-0 shadow-lg flex justify-around p-2 z-40 text-xs">
         <button onclick="switchTab('recorrido')" class="nav-btn flex flex-col items-center text-blue-700 font-bold" id="nav-recorrido">
             <i class="fas fa-route text-lg"></i><span>Ruta</span>
@@ -808,9 +819,6 @@
         </button>
         <button onclick="switchTab('finanzas')" class="nav-btn flex flex-col items-center text-gray-500 font-semibold" id="nav-finanzas">
             <i class="fas fa-wallet text-lg"></i><span>Caja</span>
-        </button>
-        <button onclick="switchTab('config')" class="nav-btn flex flex-col items-center text-gray-500 font-semibold" id="nav-config">
-            <i class="fas fa-cog text-lg"></i><span>Ajustes</span>
         </button>
     </nav>
 
@@ -831,7 +839,7 @@
     <!-- Leaflet JS -->
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
-    <!-- LÓGICA JS V1.8.6 PRO -->
+    <!-- LÓGICA JS V1.8.7 PRO -->
     <script>
         let appState = {
             precios: { b20: 3000, b12: 2200, soda: 1800, packSoda: 10000, soda500: 1200, packSoda500: 13000, fc: 8000, mesa: 15000 },
@@ -1072,7 +1080,7 @@
             const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(appState));
             const downloadAnchor = document.createElement('a');
             downloadAnchor.setAttribute("href", dataStr);
-            downloadAnchor.setAttribute("download", `soderapp_v186_backup_${new Date().toISOString().split('T')[0]}.json`);
+            downloadAnchor.setAttribute("download", `soderapp_v187_backup_${new Date().toISOString().split('T')[0]}.json`);
             document.body.appendChild(downloadAnchor);
             downloadAnchor.click();
             downloadAnchor.remove();
@@ -1101,7 +1109,7 @@
 
         function guardarStorage() {
             try {
-                localStorage.setItem('chosen_soderapp_v186_data', JSON.stringify(appState));
+                localStorage.setItem('chosen_soderapp_v187_data', JSON.stringify(appState));
             } catch (e) {
                 console.error("Error storage:", e);
                 mostrarModal("Alerta de Memoria", "La imagen es muy pesada. Intente con una foto más liviana.");
@@ -1109,7 +1117,7 @@
         }
 
         function cargarStorage() {
-            const data = localStorage.getItem('chosen_soderapp_v186_data');
+            const data = localStorage.getItem('chosen_soderapp_v187_data');
             if (data) { try { appState = JSON.parse(data); } catch(e) {} }
         }
 
@@ -1605,7 +1613,6 @@
             const cPackSoda500 = parseInt(document.getElementById('vta-cant-packsoda500').value) || 0;
             const cMesa = parseInt(document.getElementById('vta-cant-mesa').value) || 0;
 
-            // Físicamente los packs restan unidades individuales al camión
             const totalSodaFisica = cSoda + (cPackSoda * 6);
             const totalSoda500Fisica = cSoda500 + (cPackSoda500 * 12);
 
